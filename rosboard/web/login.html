@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | ROSBoard</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(to bottom right, #061826, #1a4e8a);
+        height: 100vh;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .login-container {
+        background: #ffffffee;
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+        width: 320px;
+        text-align: center;
+      }
+      .login-container h2 {
+        margin-bottom: 20px;
+        color: #102d5c;
+      }
+      input {
+        width: 100%;
+        padding: 10px;
+        margin: 8px 0 15px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+      }
+      button {
+        width: 100%;
+        background: #1a4e8a;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+      button:hover {
+        background: #163f6b;
+      }
+      .error {
+        color: red;
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <h2>ROSBoard Login</h2>
+      <form method="POST">
+        <label>Email</label>
+        <input type="text" name="username" placeholder="user@example.com" required />
+        <label>Password</label>
+        <input type="password" name="password" placeholder="••••••" required />
+        <button type="submit">Login</button>
+      </form>
+    </div>
+  </body>
+</html>
