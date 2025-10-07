@@ -2,5 +2,5 @@
 
 import rosboard.rosboard
 print("Running from %s" % str(rosboard.__path__))
-rosboard.rosboard.main()
-
+import rosboard.rosboard.login_server
+rosboard.rosboard.login_server.main()
