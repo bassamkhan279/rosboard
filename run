@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import rosboard.rosboard
-print("Running from %s" % str(rosboard.__path__))
 import rosboard.login_server
-rosboard.rosboard.login_server.main()
+
+print("Starting ROSBoard with login page...")
+rosboard.login_server.main()
