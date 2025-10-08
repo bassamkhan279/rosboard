@@ -55,13 +55,24 @@
   <body>
     <div class="login-container">
       <h2>ROSBoard Login</h2>
-      <form method="POST">
+      <form method="POST" action="/login">
         <label>Email</label>
-        <input type="text" name="username" placeholder="user@example.com" required />
+        <input
+          type="text"
+          name="username"
+          placeholder="user@example.com"
+          required
+        />
         <label>Password</label>
-        <input type="password" name="password" placeholder="••••••" required />
+        <input
+          type="password"
+          name="password"
+          placeholder="••••••"
+          required
+        />
         <button type="submit">Login</button>
       </form>
     </div>
   </body>
 </html>
+
