@@ -5,10 +5,8 @@ import aiohttp_session
 from aiohttp_session import SimpleCookieStorage, get_session
 import pathlib
 
-# Path to the web folder (where login.html is)
+# Path to the web folder
 webdir = pathlib.Path(__file__).parent / "web"
-# Path to ROSBoard's main HTML dashboard
-rosboard_html = pathlib.Path(__file__).parent / "html" / "index.html"
 
 # ---------- Login Page ----------
 async def login_page(request):
@@ -17,32 +15,44 @@ async def login_page(request):
         data = await request.post()
         user = data.get("username")
         pwd = data.get("password")
-        # Hardcoded login credentials
+
+        # Dummy credentials
         if user == "admin@example.com" and pwd == "1234":
             session = await get_session(request)
             session["user"] = user
             raise web.HTTPFound("/dashboard")
         else:
             return web.Response(text="Invalid credentials", status=401)
+
     return web.FileResponse(login_path)
 
 # ---------- Middleware ----------
 @web.middleware
 async def require_login_middleware(request, handler):
+    # Allow access to login and static pages without login
+    if request.path.startswith("/login") or request.path.startswith("/static"):
+        return await handler(request)
+
     session = await get_session(request)
-    if request.path not in ["/login", "/static"] and "user" not in session:
+    if "user" not in session:
         raise web.HTTPFound("/login")
+
     return await handler(request)
 
 # ---------- Dashboard ----------
 async def dashboard(request):
-    # Return the actual ROSBoard dashboard (index.html)
-    return web.FileResponse(rosboard_html)
+    # Start ROSBoard dashboard on a different port
+    def run_rosboard():
+        subprocess.run(["python3", "-m", "rosboard.rosboard", "--port", "8889"])
+    threading.Thread(target=run_rosboard, daemon=True).start()
+
+    raise web.HTTPFound("http://localhost:8889")
 
 # ---------- Main ----------
 def main():
-    app = web.Application(middlewares=[require_login_middleware])
+    app = web.Application(middlewares=[aiohttp_session.session_middleware(SimpleCookieStorage()), require_login_middleware])
     aiohttp_session.setup(app, SimpleCookieStorage())
+
     app.router.add_route("GET", "/login", login_page)
     app.router.add_route("POST", "/login", login_page)
     app.router.add_route("GET", "/dashboard", dashboard)
