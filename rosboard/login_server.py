@@ -1,29 +1,55 @@
+import threading
+import subprocess
 from aiohttp import web
+import aiohttp_session
+from aiohttp_session import SimpleCookieStorage, get_session
 import pathlib
 
-# Path to the login page and dashboard folder
-web_dir = pathlib.Path(__file__).parent / "web"
-html_dir = pathlib.Path(__file__).parent / "html"
+# Path to the web folder (where login.html is)
+webdir = pathlib.Path(__file__).parent / "web"
+# Path to ROSBoard's main HTML dashboard
+rosboard_html = pathlib.Path(__file__).parent / "html" / "index.html"
 
-# ----- Login page -----
-async def handle_login(request):
+# ---------- Login Page ----------
+async def login_page(request):
+    login_path = webdir / "login.html"
     if request.method == "POST":
-        # Directly redirect to dashboard (no auth)
-        raise web.HTTPFound("/dashboard")
-    return web.FileResponse(web_dir / "login.html")
+        data = await request.post()
+        user = data.get("username")
+        pwd = data.get("password")
+        # Hardcoded login credentials
+        if user == "admin@example.com" and pwd == "1234":
+            session = await get_session(request)
+            session["user"] = user
+            raise web.HTTPFound("/dashboard")
+        else:
+            return web.Response(text="Invalid credentials", status=401)
+    return web.FileResponse(login_path)
 
-# ----- Dashboard redirect -----
-async def handle_dashboard(request):
-    return web.FileResponse(html_dir / "index.html")
+# ---------- Middleware ----------
+@web.middleware
+async def require_login_middleware(request, handler):
+    session = await get_session(request)
+    if request.path not in ["/login", "/static"] and "user" not in session:
+        raise web.HTTPFound("/login")
+    return await handler(request)
 
-# ----- Main entrypoint -----
+# ---------- Dashboard ----------
+async def dashboard(request):
+    # Return the actual ROSBoard dashboard (index.html)
+    return web.FileResponse(rosboard_html)
+
+# ---------- Main ----------
 def main():
-    app = web.Application()
-    app.router.add_route("GET", "/", handle_login)
-    app.router.add_route("GET", "/login", handle_login)
-    app.router.add_route("POST", "/login", handle_login)
-    app.router.add_route("GET", "/dashboard", handle_dashboard)
+    app = web.Application(middlewares=[require_login_middleware])
+    aiohttp_session.setup(app, SimpleCookieStorage())
+    app.router.add_route("GET", "/login", login_page)
+    app.router.add_route("POST", "/login", login_page)
+    app.router.add_route("GET", "/dashboard", dashboard)
+    app.router.add_static("/static/", path=str(webdir / "static"), name="static")
 
-    print("Login server running on http://localhost:8888 ...")
+    print("[ROSBoard] Login server running on http://localhost:8888")
     web.run_app(app, host="0.0.0.0", port=8888)
 
+if __name__ == "__main__":
+    main()
