@@ -20,7 +20,7 @@ async def init_db(app):
         database='postgres',
         host='db.pxlbmyygaiqevnbcrnmj.supabase.co', 
         port=5432,
-        ssl='require'  
+        ssl='require'
     )
     print("[Database] Connected!")
 
@@ -46,7 +46,7 @@ async def login_page(request):
         if record:
             session = await get_session(request)
             session["user"] = dict(record)
-            raise web.HTTPFound("/rosboard")  # ✅ Everyone goes to rosboard
+            raise web.HTTPFound("/rosboard")  # ✅ Everyone goes to /rosboard
         else:
             return web.Response(text="Invalid credentials", status=401)
 
@@ -55,9 +55,19 @@ async def login_page(request):
 # ---------- Middleware ----------
 @web.middleware
 async def require_login_middleware(request, handler):
+    # ✅ Allow login and static files without session
     if request.path.startswith("/login") or request.path.startswith("/static"):
         return await handler(request)
 
+    # ✅ Redirect root "/" to /login if not logged in
+    if request.path == "/":
+        session = await get_session(request)
+        if "user" not in session:
+            raise web.HTTPFound("/login")
+        else:
+            raise web.HTTPFound("/rosboard")
+
+    # ✅ Require login for all other routes
     session = await get_session(request)
     if "user" not in session:
         raise web.HTTPFound("/login")
@@ -74,8 +84,8 @@ async def admin_page(request):
     session = await get_session(request)
     user = session.get("user")
 
-    if not user or user["role"] != "admin":
-        raise web.HTTPFound("/rosboard")  # redirect non-admins
+    if not user or user.get("role") != "admin":
+        raise web.HTTPFound("/rosboard")
 
     admin_html = webdir / "admin.html"
     return web.FileResponse(admin_html)
@@ -84,9 +94,9 @@ async def admin_page(request):
 async def admin_only(request):
     session = await get_session(request)
     user = session.get("user")
-    if not user or user["role"] != "admin":
+    if not user or user.get("role") != "admin":
         return web.Response(text="Forbidden", status=403)
-    return None  # continue
+    return None
 
 async def get_users(request):
     await admin_only(request)
@@ -124,7 +134,8 @@ async def delete_user(request):
 
 # ---------- ROSBoard Backend ----------
 def run_rosboard_backend():
-    subprocess.run(["python3", "-m", "rosboard.rosboard", "--port", "8889"])
+    subprocess.Popen(["python3", "-m", "rosboard", "--port", "8889"])
+
 
 # ---------- Main ----------
 def main():
@@ -141,6 +152,7 @@ def main():
     app.on_cleanup.append(close_db)
 
     # Routes
+    app.router.add_route("GET", "/", login_page)  # ✅ Root redirects to login
     app.router.add_route("GET", "/login", login_page)
     app.router.add_route("POST", "/login", login_page)
     app.router.add_route("GET", "/rosboard", rosboard_page)
@@ -155,10 +167,11 @@ def main():
     app.router.add_static("/static/", path=str(webdir / "static"), name="static")
 
     print("[ROSBoard] Server running on http://localhost:8888")
-    print("After login, everyone → http://localhost:8888/rosboard")
+    print("After login → http://localhost:8888/rosboard")
     print("Admins can visit → http://localhost:8888/admin")
 
     web.run_app(app, host="0.0.0.0", port=8888)
+
 
 if __name__ == "__main__":
     main()
