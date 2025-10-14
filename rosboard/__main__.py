@@ -1,4 +1,5 @@
-from rosboard.rosboard import main
+from rosboard.rosboard.rosboard import main
 
 if __name__ == "__main__":
     main()
+
