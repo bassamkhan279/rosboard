@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin – User Management</title>
+  <style>
+    body {
+      display: flex;
+      font-family: Arial, sans-serif;
+      margin: 0;
+    }
+    .sidebar {
+      width: 220px;
+      background-color: #222;
+      color: white;
+      height: 100vh;
+      padding: 20px;
+    }
+    .sidebar a {
+      display: block;
+      color: white;
+      padding: 10px 0;
+      text-decoration: none;
+    }
+    .sidebar a:hover {
+      background-color: #444;
+    }
+    .content {
+      flex: 1;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h3>ROSBoard</h3>
+    <a href="/rosboard">Main Board</a>
+    <a href="/admin">User Management</a>
+    <a href="/logout">Logout</a>
+  </div>
+  <div class="content">
+    <h2>User Management</h2>
+    <form method="post" action="/admin">
+      <input type="hidden" name="action" value="create">
+      <input type="email" name="email" placeholder="New user email" required>
+      <input type="password" name="password" placeholder="Password" required>
+      <select name="role">
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+      </select>
+      <button type="submit">Create User</button>
+    </form>
+
+    <h3>Existing Users</h3>
+    <ul>
+      {% for u in users %}
+        <li>{{ u.email }} ({{ u.role }})
+          <form style="display:inline;" method="post" action="/admin">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="email" value="{{ u.email }}">
+            <button type="submit">Delete</button>
+          </form>
+        </li>
+      {% end %}
+    </ul>
+  </div>
+</body>
+</html>
