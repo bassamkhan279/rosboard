@@ -1,34 +1,22 @@
 #!/usr/bin/env python3
+#!/usr/bin/env python3
 import threading
 import subprocess
 import pathlib
-import json
-import asyncpg
 from aiohttp import web
 import aiohttp_session
 from aiohttp_session import SimpleCookieStorage, get_session
+from supabase import create_client, Client
 
 # ---------- Paths ----------
 BASE_DIR = pathlib.Path(__file__).parent
 WEB_DIR = BASE_DIR / "web"
 HTML_DIR = BASE_DIR / "html"
 
-# ---------- Database Setup ----------
-async def init_db(app):
-    print("[Database] Connecting to Supabase PostgreSQL...")
-    app['db'] = await asyncpg.create_pool(
-        user='postgres',
-        password='MZDtjmdksMyktjXo',
-        database='postgres',
-        host='db.pxlbmyygaiqevnbcrnmj.supabase.co',
-        port=5432,
-        ssl='require'
-    )
-    print("[Database] ✅ Connected!")
-
-async def close_db(app):
-    await app['db'].close()
-    print("[Database] ❌ Connection closed.")
+# ---------- Supabase Setup ----------
+SUPABASE_URL = "https://pxlbmyygaiqevnbcrnmj.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bGJteXlnYWlxZXZuYmNybm1qIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTk5OTIwNCwiZXhwIjoyMDc1NTc1MjA0fQ.ufkzZDGdo9wUzdc2SgbYcMKAVuUxKpIkzzRjJqfLRuA"  # use service_role key from Supabase dashboard
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ---------- Login Page ----------
 async def login_page(request):
@@ -39,15 +27,10 @@ async def login_page(request):
         user = data.get("username")
         pwd = data.get("password")
 
-        async with request.app['db'].acquire() as conn:
-            record = await conn.fetchrow(
-                "SELECT * FROM profiles WHERE email=$1 AND password=$2",
-                user, pwd
-            )
-
-        if record:
+        response = supabase.table("profiles").select("*").eq("email", user).eq("password", pwd).execute()
+        if response.data and len(response.data) > 0:
             session = await get_session(request)
-            session["user"] = dict(record)
+            session["user"] = response.data[0]
             print(f"[Login] ✅ User '{user}' logged in.")
             raise web.HTTPFound("/rosboard")
         else:
@@ -64,52 +47,52 @@ async def logout(request):
 
 # ---------- Register Page ----------
 async def register_page(request):
-    register_path = webdir / "register.html"
+    register_path = WEB_DIR / "register.html"
 
     if request.method == "POST":
         data = await request.post()
         email = data.get("email")
         password = data.get("password")
 
-        async with request.app['db'].acquire() as conn:
-            existing = await conn.fetchrow("SELECT * FROM profiles WHERE email=$1", email)
-            if existing:
-                return web.Response(text="Email already exists", status=400)
+        # Check if email already exists
+        existing = supabase.table("profiles").select("*").eq("email", email).execute()
+        if existing.data and len(existing.data) > 0:
+            return web.Response(text="Email already exists", status=400)
 
-            await conn.execute(
-                "INSERT INTO profiles (email, password, role, created_at) VALUES ($1, $2, $3, NOW())",
-                email, password, "user"
-            )
+        supabase.table("profiles").insert({
+            "email": email,
+            "password": password,
+            "role": "user"
+        }).execute()
 
+        print(f"[Register] ✅ New user created: {email}")
         raise web.HTTPFound("/login")
 
     return web.FileResponse(register_path)
 
-
 # ---------- Forgot Password Page ----------
 async def forgot_password_page(request):
-    forgot_path = webdir / "forgot_password.html"
+    forgot_path = WEB_DIR / "forgot_password.html"
 
     if request.method == "POST":
         data = await request.post()
         email = data.get("email")
 
-        async with request.app['db'].acquire() as conn:
-            user = await conn.fetchrow("SELECT * FROM profiles WHERE email=$1", email)
-            if not user:
-                return web.Response(text="Email not found", status=404)
+        user = supabase.table("profiles").select("*").eq("email", email).execute()
+        if not user.data:
+            return web.Response(text="Email not found", status=404)
 
-        # ✅ For now, we just show success — later, integrate Supabase email service
+        # Simulate password reset
+        print(f"[ForgotPassword] Link sent to {email}")
         return web.Response(text="Password reset link sent (simulated).", status=200)
 
     return web.FileResponse(forgot_path)
-
 
 # ---------- Middleware ----------
 @web.middleware
 async def require_login_middleware(request, handler):
     path = request.path
-    if path.startswith("/login") or path.startswith("/static") or path == "/logout":
+    if path.startswith("/login") or path.startswith("/static") or path == "/logout" or path.startswith("/register") or path.startswith("/forgot"):
         return await handler(request)
 
     # Redirect root "/" to login or /rosboard
@@ -156,19 +139,18 @@ async def admin_only(request):
 async def get_users(request):
     check = await admin_only(request)
     if check: return check
-    async with request.app['db'].acquire() as conn:
-        users = await conn.fetch("SELECT id, email, role, created_at FROM profiles ORDER BY created_at DESC")
-    return web.json_response([dict(u) for u in users])
+    users = supabase.table("profiles").select("id,email,role,created_at").order("created_at", desc=True).execute()
+    return web.json_response(users.data)
 
 async def create_user(request):
     check = await admin_only(request)
     if check: return check
     data = await request.json()
-    async with request.app['db'].acquire() as conn:
-        await conn.execute(
-            "INSERT INTO profiles (email, password, role, created_at) VALUES ($1, $2, $3, NOW())",
-            data["email"], data["password"], data["role"]
-        )
+    supabase.table("profiles").insert({
+        "email": data["email"],
+        "password": data["password"],
+        "role": data["role"]
+    }).execute()
     return web.json_response({"status": "ok"})
 
 async def update_user(request):
@@ -176,19 +158,18 @@ async def update_user(request):
     if check: return check
     user_id = request.match_info["id"]
     data = await request.json()
-    async with request.app['db'].acquire() as conn:
-        await conn.execute(
-            "UPDATE profiles SET email=$1, password=$2, role=$3 WHERE id=$4",
-            data["email"], data["password"], data["role"], user_id
-        )
+    supabase.table("profiles").update({
+        "email": data["email"],
+        "password": data["password"],
+        "role": data["role"]
+    }).eq("id", user_id).execute()
     return web.json_response({"status": "updated"})
 
 async def delete_user(request):
     check = await admin_only(request)
     if check: return check
     user_id = request.match_info["id"]
-    async with request.app['db'].acquire() as conn:
-        await conn.execute("DELETE FROM profiles WHERE id=$1", user_id)
+    supabase.table("profiles").delete().eq("id", user_id).execute()
     return web.json_response({"status": "deleted"})
 
 # ---------- Run ROSBoard Backend ----------
@@ -198,18 +179,12 @@ def run_rosboard_backend():
 # ---------- App Setup ----------
 def main():
     print("[ROSBoard] 🔧 Starting login + admin server...")
-
-    # Start rosboard in background
     threading.Thread(target=run_rosboard_backend, daemon=True).start()
 
-    # Setup aiohttp app
     app = web.Application(middlewares=[
         aiohttp_session.session_middleware(SimpleCookieStorage()),
         require_login_middleware
     ])
-
-    app.on_startup.append(init_db)
-    app.on_cleanup.append(close_db)
 
     # --- ROUTES ---
     app.router.add_get("/", login_page)
@@ -218,6 +193,10 @@ def main():
     app.router.add_get("/logout", logout)
     app.router.add_get("/rosboard", rosboard_page)
     app.router.add_get("/admin", admin_page)
+    app.router.add_get("/register", register_page)
+    app.router.add_post("/register", register_page)
+    app.router.add_get("/forgot", forgot_password_page)
+    app.router.add_post("/forgot", forgot_password_page)
 
     # --- Admin APIs ---
     app.router.add_get("/api/users", get_users)
@@ -230,11 +209,12 @@ def main():
 
     print("[ROSBoard] ✅ Server running at: http://localhost:8888")
     print("   → Login Page: http://localhost:8888/login")
+    print("   → Register Page: http://localhost:8888/register")
+    print("   → Forgot Password: http://localhost:8888/forgot")
     print("   → Main ROSBoard: http://localhost:8888/rosboard")
     print("   → Admin Panel: http://localhost:8888/admin")
 
     web.run_app(app, host="0.0.0.0", port=8888)
-
 
 if __name__ == "__main__":
     main()
