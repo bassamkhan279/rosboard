@@ -6,6 +6,7 @@
   <title>Create Account - ROSBoard</title>
   <style>
     body {
+      background: url("/static/images/background.jpg") no-repeat center center fixed;
       font-family: sans-serif;
       background: linear-gradient(to bottom right, #061826, #1a4e8a);
       height: 100vh;
@@ -25,6 +26,14 @@
       width: 100%;
       padding: 10px;
       margin: 10px 0;
+      box-sizing: border-box;
+      display: block;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: white;
+      appearance: none;
+      -webkit-appearance: none;
+      
     }
     button {
       background: #1a4e8a;
@@ -47,9 +56,13 @@
 <body>
   <div class="register-box">
     <h2>Create Account</h2>
-    <form method="POST">
+    <form method="POST" action="/register">
       <input type="text" name="email" placeholder="Email" required />
       <input type="password" name="password" placeholder="Password" required />
+      <select name="role" required>
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+      </select><br>
       <button type="submit">Sign Up</button>
     </form>
     <p>Already have an account? <a href="/login">Login</a></p>
