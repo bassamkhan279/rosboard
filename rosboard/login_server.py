@@ -3,7 +3,6 @@ import threading
 import subprocess
 import pathlib
 import json
-import urllib.parse
 from aiohttp import web, ClientSession
 import aiohttp_session
 from aiohttp_session import SimpleCookieStorage, get_session
@@ -11,69 +10,72 @@ from aiohttp_session import SimpleCookieStorage, get_session
 # ---------- Paths ----------
 BASE_DIR = pathlib.Path(__file__).parent
 WEB_DIR = BASE_DIR / "web"
-HTML_DIR = BASE_DIR / "html"
+# HTML_DIR is no longer needed, the rosboard backend will serve its own files.
+# HTML_DIR = BASE_DIR / "html" 
 
-# ---------- Supabase (PostgREST) HTTP config ----------
-# Replace SERVICE_ROLE_KEY with your real service_role key (keep it secret)
-SUPABASE_URL = "https://pxlbmyygaiqevnbcrnmj.supabase.co"  # your project host
+# ---------- Supabase (PostgREST & Auth) HTTP config ----------
+SUPABASE_URL = "https://pxlbmyygaiqevnbcrnmj.supabase.co"
 SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bGJteXlnYWlxZXZuYmNybm1qIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTk5OTIwNCwiZXhwIjoyMDc1NTc1MjA0fQ.ufkzZDGdo9wUzdc2SgbYcMKAVuUxKpIkzzRjJqfLRuA"
+ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bGJteXlnYWlxZXZuYmNybm1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5OTkyMDQsImV4cCI6MjA3NTU3NTIwNH0.ZLYal4RUIM8BISLiGQorh-hVN_VDSPqjJjB2WnN4V04" 
 
-# REST base for the public PostgREST endpoints:
+# Base URLs
 POSTGREST_BASE = f"{SUPABASE_URL}/rest/v1"
+AUTH_BASE = f"{SUPABASE_URL}/auth/v1"
 
-# Standard headers for server-side (service role) requests:
+# ---------- HTTP Helper Functions ----------
+
 def _supabase_headers():
     return {
         "apikey": SERVICE_ROLE_KEY,
         "Authorization": f"Bearer {SERVICE_ROLE_KEY}",
         "Content-Type": "application/json",
-        # Prefer header to return the created/updated rows when requested
         "Prefer": "return=representation",
     }
 
-# ---------- Helper HTTP functions (async) ----------
+def _auth_headers(jwt=None):
+    headers = {
+        "apikey": ANON_KEY,
+        "Content-Type": "application/json"
+    }
+    if jwt:
+        headers["Authorization"] = f"Bearer {jwt}"
+    return headers
+
 async def sb_get(session: ClientSession, path: str, params: dict = None):
     url = f"{POSTGREST_BASE}/{path}"
     async with session.get(url, headers=_supabase_headers(), params=params) as resp:
-        text = await resp.text()
-        try:
-            data = await resp.json()
-        except Exception:
-            data = {"error": text}
-        return resp.status, data
+        return resp.status, await resp.json()
 
 async def sb_post(session: ClientSession, path: str, payload: dict):
     url = f"{POSTGREST_BASE}/{path}"
-    async with session.post(url, headers=_supabase_headers(), data=json.dumps(payload)) as resp:
-        text = await resp.text()
-        try:
-            data = await resp.json()
-        except Exception:
-            data = {"raw": text}
-        return resp.status, data
+    async with session.post(url, headers=_supabase_headers(), json=payload) as resp:
+        return resp.status, await resp.json()
 
 async def sb_patch(session: ClientSession, path: str, payload: dict, params: dict = None):
     url = f"{POSTGREST_BASE}/{path}"
-    # PATCH using PostgREST: send PATCH to resource with query in URL
-    async with session.patch(url, headers=_supabase_headers(), params=params, data=json.dumps(payload)) as resp:
-        text = await resp.text()
-        try:
-            data = await resp.json()
-        except Exception:
-            data = {"raw": text}
-        return resp.status, data
+    async with session.patch(url, headers=_supabase_headers(), params=params, json=payload) as resp:
+        return resp.status, await resp.json()
 
 async def sb_delete(session: ClientSession, path: str, params: dict = None):
     url = f"{POSTGREST_BASE}/{path}"
     async with session.delete(url, headers=_supabase_headers(), params=params) as resp:
-        text = await resp.text()
+        return resp.status, await resp.json()
+
+async def sb_auth_post(session: ClientSession, path: str, payload: dict):
+    url = f"{AUTH_BASE}/{path}"
+    async with session.post(url, headers=_auth_headers(), json=payload) as resp:
         try:
             data = await resp.json()
         except Exception:
-            data = {"raw": text}
+            data = {"raw": await resp.text()}
         return resp.status, data
 
-# ---------- App startup / cleanup to create HTTP session ----------
+async def sb_auth_put(session: ClientSession, path: str, payload: dict, jwt: str):
+    url = f"{AUTH_BASE}/{path}"
+    async with session.put(url, headers=_auth_headers(jwt=jwt), json=payload) as resp:
+        return resp.status, await resp.json()
+
+# ---------- App Startup / Cleanup ----------
 async def on_startup(app):
     print("[Supabase] Creating HTTP client session")
     app["http_client"] = ClientSession()
@@ -82,26 +84,21 @@ async def on_cleanup(app):
     print("[Supabase] Closing HTTP client session")
     await app["http_client"].close()
 
-# ---------- Login Page ----------
+# ---------- Page Handlers ----------
+
 async def login_page(request):
     login_path = WEB_DIR / "login.html"
-
     if request.method == "POST":
         data = await request.post()
-        email = data.get("username")
+        email = data.get("email")
         pwd = data.get("password")
-
-        # Use GET query to filter rows: ?email=eq.<email>&password=eq.<pwd>
-        # put params in dict so aiohttp encodes them.
-        params = {
-            "email": f"eq.{email}",
-            "password": f"eq.{pwd}",
-            "select": "*"
-        }
+        
+        params = {"email": f"eq.{email}", "password": f"eq.{pwd}", "select": "*"}
         status, data = await sb_get(request.app["http_client"], "profiles", params=params)
-        if status == 200 and isinstance(data, list) and len(data) > 0:
+        
+        if status == 200 and data:
             session = await get_session(request)
-            session["user"] = data[0]  # store user record
+            session["user"] = data[0]
             print(f"[Login] ✅ User '{email}' logged in.")
             raise web.HTTPFound("/rosboard")
         else:
@@ -110,110 +107,148 @@ async def login_page(request):
 
     return web.FileResponse(login_path)
 
-# ---------- Logout ----------
 async def logout(request):
     session = await get_session(request)
     session.invalidate()
     raise web.HTTPFound("/login")
 
-# ---------- Register Page ----------
 async def register_page(request):
     register_path = WEB_DIR / "register.html"
-
     if request.method == "POST":
         data = await request.post()
         email = data.get("email")
         password = data.get("password")
+        role = data.get("role", "user")
 
-        # check existence
         params = {"email": f"eq.{email}", "select": "id"}
         status, existing = await sb_get(request.app["http_client"], "profiles", params=params)
-        if status == 200 and isinstance(existing, list) and len(existing) > 0:
+        if status == 200 and existing:
             return web.Response(text="Email already exists", status=400)
 
-        payload = {"email": email, "password": password, "role": "user"}
+        payload = {"email": email, "password": password, "role": role}
         status, created = await sb_post(request.app["http_client"], "profiles", payload)
-        if status in (201, 200):
-            print(f"[Register] ✅ New user created: {email}")
+        
+        if status == 201:
+            print(f"[Register] ✅ New user created: {email} with role: {role}")
             raise web.HTTPFound("/login")
         else:
             print("[Register] ❌ Failed to create user:", created)
-            return web.Response(text="Failed to create user", status=500)
+            return web.Response(text=f"Failed to create user: {created}", status=500)
 
     return web.FileResponse(register_path)
 
-# ---------- Forgot Password Page ----------
 async def forgot_password_page(request):
-    forgot_path = WEB_DIR / "forgot_password.html"
-
     if request.method == "POST":
         data = await request.post()
         email = data.get("email")
+        payload = {"email": email}
+        status, result = await sb_auth_post(request.app["http_client"], "/recover", payload)
 
-        params = {"email": f"eq.{email}", "select": "id,email"}
-        status, found = await sb_get(request.app["http_client"], "profiles", params=params)
-        if status == 200 and isinstance(found, list) and len(found) > 0:
-            # simulate reset (you can implement email sending via Supabase Auth SMTP later)
-            print(f"[ForgotPassword] Simulated reset link for {email}")
-            return web.Response(text="Password reset link sent (simulated).", status=200)
+        if status == 200:
+            msg = "If an account exists, a password reset link has been sent."
+            print(f"[Password Reset] ✅ Recovery email initiated for {email}")
+            return web.Response(text=msg, status=200)
         else:
-            return web.Response(text="Email not found", status=404)
+            msg = f"Error requesting password reset: {result.get('msg', 'Unknown error')}"
+            print(f"[Password Reset] ❌ Failed for {email}: {result}")
+            return web.Response(text=msg, status=status)
 
-    return web.FileResponse(forgot_path)
+    return web.FileResponse(WEB_DIR / "forgot_password.html")
+
+async def reset_password_page(request):
+    if request.method == "POST":
+        data = await request.post()
+        access_token = data.get("access_token")
+        new_password = data.get("password")
+
+        if not access_token or not new_password:
+            return web.Response(text="Missing token or password.", status=400)
+
+        payload = {"password": new_password}
+        status, result = await sb_auth_put(request.app["http_client"], "/user", payload, jwt=access_token)
+
+        if status == 200:
+            print(f"[Password Reset] ✅ Password updated successfully for user.")
+            return web.Response(text="Password updated successfully!", status=200)
+        else:
+            error_msg = result.get('msg', 'Failed to update password.')
+            print(f"[Password Reset] ❌ Failed to update password: {result}")
+            return web.Response(text=error_msg, status=status)
+
+    return web.FileResponse(WEB_DIR / "reset_password.html")
 
 # ---------- Middleware ----------
+
 @web.middleware
 async def require_login_middleware(request, handler):
     path = request.path
-    # allow public paths
-    if path.startswith("/login") or path.startswith("/register") or path.startswith("/forgot") or path.startswith("/static") or path == "/logout":
+    public_paths = ["/login", "/register", "/forgot-password", "/reset-password", "/logout"]
+    if any(path.startswith(p) for p in public_paths) or path.startswith("/static"):
         return await handler(request)
 
-    # Root redirect behavior
-    if path == "/":
-        session = await get_session(request)
-        if "user" not in session:
-            raise web.HTTPFound("/login")
-        else:
-            raise web.HTTPFound("/rosboard")
-
-    # require session for others
     session = await get_session(request)
+    if path == "/":
+        raise web.HTTPFound("/login" if "user" not in session else "/rosboard")
+
+    # This is the key: if user is logged in, let the proxy handle rosboard
+    if "user" in session and path.startswith("/rosboard"):
+        return await handler(request) # <--- calls the rosboard_proxy
+
     if "user" not in session:
         raise web.HTTPFound("/login")
 
     return await handler(request)
 
-# ---------- ROSBoard Page ----------
-async def rosboard_page(request):
-    index_path = HTML_DIR / "index.html"
-    return web.FileResponse(index_path)
+# ---------- **NEW** ROSBoard Proxy ----------
+# This function replaces the old rosboard_page function
+async def rosboard_proxy(request):
+    """Proxy all rosboard requests to the backend on port 8889."""
+    client_session = request.app["http_client"]
+    
+    # Reconstruct the target URL for the backend server
+    target_url = f"http://localhost:8889{request.path_qs}"
 
-# ---------- Admin Page ----------
+    try:
+        async with client_session.request(
+            request.method,
+            target_url,
+            headers=request.headers,
+            data=await request.read()
+        ) as resp:
+            # Create a new response with the same status, headers, and body
+            response = web.Response(
+                status=resp.status,
+                headers=resp.headers,
+                body=await resp.read()
+            )
+            # Remove chunked encoding if present, as it can cause issues
+            response.headers.pop('Transfer-Encoding', None)
+            return response
+    except Exception as e:
+        print(f"[Rosboard Proxy] ❌ Error connecting to backend: {e}")
+        return web.Response(text="Rosboard backend is not reachable.", status=502)
+
+# ---------- Admin Page & API (Unchanged) ----------
+
 async def admin_page(request):
     session = await get_session(request)
     user = session.get("user")
     if not user or user.get("role") != "admin":
         raise web.HTTPFound("/rosboard")
-    admin_html = WEB_DIR / "admin.html"
-    return web.FileResponse(admin_html)
+    return web.FileResponse(WEB_DIR / "admin.html")
 
-# ---------- Admin helper ----------
 async def admin_only(request):
     session = await get_session(request)
     user = session.get("user")
     if not user or user.get("role") != "admin":
         return web.Response(text="Forbidden", status=403)
     return None
-
-# ---------- Admin APIs (CRUD) ----------
 async def get_users(request):
     check = await admin_only(request)
     if check: return check
     params = {"select": "id,email,role,created_at", "order": "created_at.desc"}
     status, data = await sb_get(request.app["http_client"], "profiles", params=params)
     return web.json_response(data)
-
 async def create_user(request):
     check = await admin_only(request)
     if check: return check
@@ -221,18 +256,15 @@ async def create_user(request):
     payload = {"email": data["email"], "password": data["password"], "role": data["role"]}
     status, res = await sb_post(request.app["http_client"], "profiles", payload)
     return web.json_response({"status": "ok", "result": res})
-
 async def update_user(request):
     check = await admin_only(request)
     if check: return check
     user_id = request.match_info["id"]
     data = await request.json()
-    # PostgREST update: PATCH /profiles?id=eq.<user_id>
     params = {"id": f"eq.{user_id}"}
     payload = {"email": data["email"], "password": data["password"], "role": data["role"]}
     status, res = await sb_patch(request.app["http_client"], "profiles", payload, params=params)
     return web.json_response({"status": "updated", "result": res})
-
 async def delete_user(request):
     check = await admin_only(request)
     if check: return check
@@ -242,46 +274,46 @@ async def delete_user(request):
     return web.json_response({"status": "deleted", "result": res})
 
 # ---------- Run ROSBoard Backend ----------
+
 def run_rosboard_backend():
-    # Keep original behavior (run rosboard node)
+    # This starts the backend on port 8889
     subprocess.Popen(["python3", "-m", "rosboard", "--port", "8889"])
 
-# ---------- App setup ----------
+# ---------- App Setup ----------
 def main():
     print("[ROSBoard] 🔧 Starting login + admin server...")
-
-    # start rosboard backend in background
     threading.Thread(target=run_rosboard_backend, daemon=True).start()
 
-    # aiohttp app + session middleware
     app = web.Application(middlewares=[
         aiohttp_session.session_middleware(SimpleCookieStorage()),
         require_login_middleware
     ])
 
-    # http client lifecycle
     app.on_startup.append(on_startup)
     app.on_cleanup.append(on_cleanup)
 
-    # routes
+    # Routes
     app.router.add_get("/", login_page)
-    app.router.add_get("/login", login_page)
-    app.router.add_post("/login", login_page)
+    app.router.add_route("*", "/login", login_page)
     app.router.add_get("/logout", logout)
-    app.router.add_get("/register", register_page)
-    app.router.add_post("/register", register_page)
-    app.router.add_get("/forgot-password", forgot_password_page)
-    app.router.add_post("/forgot-password", forgot_password_page)
-    app.router.add_get("/rosboard", rosboard_page)
+    app.router.add_route("*", "/register", register_page)
+    app.router.add_route("*", "/forgot-password", forgot_password_page)
+    app.router.add_route("*", "/reset-password", reset_password_page) 
     app.router.add_get("/admin", admin_page)
-
-    # admin APIs
+    
+    # **CHANGED**: Add proxy routes for ROSBoard
+    # These routes catch everything that starts with /rosboard
+    # and forwards it to the proxy function.
+    app.router.add_route("*", "/rosboard", rosboard_proxy)
+    app.router.add_route("*", "/rosboard/{path_info:.*}", rosboard_proxy)
+    
+    # Admin API routes
     app.router.add_get("/api/users", get_users)
     app.router.add_post("/api/users", create_user)
     app.router.add_put("/api/users/{id}", update_user)
     app.router.add_delete("/api/users/{id}", delete_user)
 
-    # static files
+    # Static files for LOGIN pages (background image)
     app.router.add_static("/static/", path=str(WEB_DIR / "static"), name="static")
 
     print("[ROSBoard] ✅ Server running at: http://localhost:8888")
