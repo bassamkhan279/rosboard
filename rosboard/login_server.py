@@ -10,8 +10,6 @@ from aiohttp_session import SimpleCookieStorage, get_session
 # ---------- Paths ----------
 BASE_DIR = pathlib.Path(__file__).parent
 WEB_DIR = BASE_DIR / "web"
-# HTML_DIR is no longer needed, the rosboard backend will serve its own files.
-# HTML_DIR = BASE_DIR / "html" 
 
 # ---------- Supabase (PostgREST & Auth) HTTP config ----------
 SUPABASE_URL = "https://pxlbmyygaiqevnbcrnmj.supabase.co"
@@ -190,23 +188,20 @@ async def require_login_middleware(request, handler):
     if path == "/":
         raise web.HTTPFound("/login" if "user" not in session else "/rosboard")
 
-    # This is the key: if user is logged in, let the proxy handle rosboard
     if "user" in session and path.startswith("/rosboard"):
-        return await handler(request) # <--- calls the rosboard_proxy
+        return await handler(request) 
 
     if "user" not in session:
         raise web.HTTPFound("/login")
 
     return await handler(request)
 
-# ---------- **NEW** ROSBoard Proxy ----------
-# This function replaces the old rosboard_page function
+# ---------- ROSBoard Proxy (Now on Port 8899) ----------
 async def rosboard_proxy(request):
-    """Proxy all rosboard requests to the backend on port 8889."""
+    """Proxy all rosboard requests to the backend on port 8899."""
     client_session = request.app["http_client"]
     
-    # Reconstruct the target URL for the backend server
-    target_url = f"http://localhost:8889{request.path_qs}"
+    target_url = f"http://localhost:8899{request.path_qs}"
 
     try:
         async with client_session.request(
@@ -215,13 +210,11 @@ async def rosboard_proxy(request):
             headers=request.headers,
             data=await request.read()
         ) as resp:
-            # Create a new response with the same status, headers, and body
             response = web.Response(
                 status=resp.status,
                 headers=resp.headers,
                 body=await resp.read()
             )
-            # Remove chunked encoding if present, as it can cause issues
             response.headers.pop('Transfer-Encoding', None)
             return response
     except Exception as e:
@@ -241,6 +234,7 @@ async def admin_only(request):
     session = await get_session(request)
     user = session.get("user")
     if not user or user.get("role") != "admin":
+        # **THIS LINE IS NOW FIXED**
         return web.Response(text="Forbidden", status=403)
     return None
 async def get_users(request):
@@ -273,11 +267,11 @@ async def delete_user(request):
     status, res = await sb_delete(request.app["http_client"], "profiles", params=params)
     return web.json_response({"status": "deleted", "result": res})
 
-# ---------- Run ROSBoard Backend ----------
+# ---------- Run ROSBoard Backend (Now on Port 8899) ----------
 
 def run_rosboard_backend():
-    # This starts the backend on port 8889
-    subprocess.Popen(["python3", "-m", "rosboard", "--port", "8889"])
+    # This starts the backend on port 8899
+    subprocess.Popen(["python3", "-m", "rosboard", "--port", "8899"]) # <--- CHANGE THIS
 
 # ---------- App Setup ----------
 def main():
@@ -301,9 +295,6 @@ def main():
     app.router.add_route("*", "/reset-password", reset_password_page) 
     app.router.add_get("/admin", admin_page)
     
-    # **CHANGED**: Add proxy routes for ROSBoard
-    # These routes catch everything that starts with /rosboard
-    # and forwards it to the proxy function.
     app.router.add_route("*", "/rosboard", rosboard_proxy)
     app.router.add_route("*", "/rosboard/{path_info:.*}", rosboard_proxy)
     
@@ -313,7 +304,7 @@ def main():
     app.router.add_put("/api/users/{id}", update_user)
     app.router.add_delete("/api/users/{id}", delete_user)
 
-    # Static files for LOGIN pages (background image)
+    # Static files for LOGIN pages
     app.router.add_static("/static/", path=str(WEB_DIR / "static"), name="static")
 
     print("[ROSBoard] ✅ Server running at: http://localhost:8888")
