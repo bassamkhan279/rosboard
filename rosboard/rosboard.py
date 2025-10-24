@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import asyncio
 import importlib
 import os
@@ -29,10 +30,10 @@ from rosboard.handlers import ROSBoardSocketHandler, NoCacheStaticFileHandler
 
 class ROSBoardNode(object):
     instance = None
-    def __init__(self, node_name = "rosboard_node"):
+    def __init__(self, port=8888, node_name = "rosboard_node"):
         self.__class__.instance = self
         rospy.init_node(node_name)
-        self.port = rospy.get_param("~port", 8888)
+        self.port = port
         self.title = rospy.get_param("~title", socket.gethostname())
 
         # desired subscriptions of all the websockets connecting to this instance.
@@ -375,7 +376,15 @@ class ROSBoardNode(object):
         )
 
 def main(args=None):
-    ROSBoardNode().start()
+    # Add this parser
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--port", type=int, default=8888, help="Port to run the rosboard server on")
+
+    # Parse only the known arguments
+    args, unknown = parser.parse_known_args()
+
+    # Pass the port to the Node
+    ROSBoardNode(port=args.port).start()
 
 if __name__ == '__main__':
     main()
