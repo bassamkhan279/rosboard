@@ -16,7 +16,6 @@ SUPABASE_URL = "https://pxlbmyygaiqevnbcrnmj.supabase.co"
 SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bGJteXlnYWlxZXZuYmNybm1qIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTk5OTIwNCwiZXhwIjoyMDc1NTc1MjA0fQ.ufkzZDGdo9wUzdc2SgbYcMKAVuUxKpIkzzRjJqfLRuA"
 ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bGJteXlnYWlxZXZuYmNybm1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5OTkyMDQsImV4cCI6MjA3NTU3NTIwNH0.ZLYal4RUIM8BISLiGQorh-hVN_VDSPqjJjB2WnN4V04"
 
-# Base URLs
 POSTGREST_BASE = f"{SUPABASE_URL}/rest/v1"
 AUTH_BASE = f"{SUPABASE_URL}/auth/v1"
 
@@ -84,15 +83,22 @@ async def on_cleanup(app):
 # ---------- SECURE LOGIN ----------
 async def login_page(request):
     login_path = WEB_DIR / "login.html"
+
     if request.method == "POST":
         data = await request.post()
         email = data.get("email")
         password = data.get("password")
 
-        payload = {"email": email, "password": password}
+        # 🟢 FIX: Added debug + moved grant_type into JSON payload instead of query
+        print(f"[Login Debug] Received email={email}, password_length={len(password) if password else 0}")
+
+        payload = {"email": email, "password": password, "grant_type": "password"}  # 🟢 FIXED
+
         status, result = await sb_auth_post(
-            request.app["http_client"], "token?grant_type=password", payload
+            request.app["http_client"], "token", payload  # 🟢 FIXED (removed '?grant_type=password')
         )
+
+        print(f"[Login Debug] Supabase responded {status}: {result}")
 
         if status == 200 and "access_token" in result:
             jwt_token = result["access_token"]
@@ -116,12 +122,10 @@ async def register_page(request):
         password = data.get("password")
         role = data.get("role", "user")
 
-        # ✅ Register securely via Supabase Auth (hashed password)
         payload = {"email": email, "password": password}
         status, result = await sb_auth_post(request.app["http_client"], "signup", payload)
 
         if status in [200, 201]:
-            # Add profile entry for user roles (optional)
             profile_payload = {"email": email, "role": role}
             await sb_post(request.app["http_client"], "profiles", profile_payload)
             print(f"[Register] ✅ User {email} registered via Supabase Auth (role: {role})")
@@ -145,7 +149,6 @@ async def forgot_password_page(request):
         data = await request.post()
         email = data.get("email")
         payload = {"email": email}
-        # ✅ Fixed path (no leading slash)
         status, result = await sb_auth_post(request.app["http_client"], "recover", payload)
 
         if status == 200:
@@ -201,7 +204,7 @@ async def require_login_middleware(request, handler):
 
     return await handler(request)
 
-# ---------- ROSBoard Proxy (Now on Port 8899) ----------
+# ---------- ROSBoard Proxy ----------
 async def rosboard_proxy(request):
     client_session = request.app["http_client"]
     target_url = f"http://localhost:8899{request.path_qs}"
@@ -289,7 +292,6 @@ def main():
     app.on_startup.append(on_startup)
     app.on_cleanup.append(on_cleanup)
 
-    # Routes
     app.router.add_get("/", login_page)
     app.router.add_route("*", "/login", login_page)
     app.router.add_get("/logout", logout)
