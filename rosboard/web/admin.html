@@ -1,71 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Create Account - ROSBoard</title>
+  <title>Admin – User Management</title>
   <style>
     body {
-      background: url("/static/images/background.jpg") no-repeat center center fixed;
-      font-family: sans-serif;
-      background: linear-gradient(to bottom right, #061826, #1a4e8a);
-      height: 100vh;
       display: flex;
-      justify-content: center;
-      align-items: center;
+      font-family: Arial, sans-serif;
+      margin: 0;
     }
-    .register-box {
-      background: white;
-      border-radius: 10px;
-      padding: 30px;
-      width: 320px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      text-align: center;
-    }
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      box-sizing: border-box;
-      display: block;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      background-color: white;
-      appearance: none;
-      -webkit-appearance: none;
-      
-    }
-    button {
-      background: #1a4e8a;
+    .sidebar {
+      width: 220px;
+      background-color: #222;
       color: white;
-      border: none;
-      border-radius: 5px;
+      height: 100vh;
+      padding: 20px;
     }
-    button:hover {
-      background: #0f315a;
-    }
-    a {
-      color: #1a4e8a;
+    .sidebar a {
+      display: block;
+      color: white;
+      padding: 10px 0;
       text-decoration: none;
     }
-    a:hover {
-      text-decoration: underline;
+    .sidebar a:hover {
+      background-color: #444;
+    }
+    .content {
+      flex: 1;
+      padding: 20px;
     }
   </style>
 </head>
 <body>
-  <div class="register-box">
-    <h2>Create Account</h2>
-    <form method="POST" action="/register">
-      <input type="text" name="email" placeholder="Email" required />
-      <input type="password" name="password" placeholder="Password" required />
-      <select name="role" required>
+  <div class="sidebar">
+    <h3>ROSBoard</h3>
+    <a href="/rosboard">Main Board</a>
+    <a href="/admin">User Management</a>
+    <a href="/logout">Logout</a>
+  </div>
+  <div class="content">
+    <h2>User Management</h2>
+    <form method="post" action="/admin">
+      <input type="hidden" name="action" value="create">
+      <input type="email" name="email" placeholder="New user email" required>
+      <input type="password" name="password" placeholder="Password" required>
+      <select name="role">
         <option value="user">User</option>
         <option value="admin">Admin</option>
-      </select><br>
-      <button type="submit">Sign Up</button>
+      </select>
+      <button type="submit">Create User</button>
     </form>
-    <p>Already have an account? <a href="/login">Login</a></p>
+
+    <h3>Existing Users</h3>
+    <ul>
+      {% for u in users %}
+        <li>{{ u.email }} ({{ u.role }})
+          <form style="display:inline;" method="post" action="/admin">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="email" value="{{ u.email }}">
+            <button type="submit">Delete</button>
+          </form>
+        </li>
+      {% end %}
+    </ul>
   </div>
 </body>
 </html>
