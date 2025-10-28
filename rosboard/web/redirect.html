@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Redirecting...</title>
+    <script>
+        // Replace with the backend URL
+        const backendUrl = "http://localhost:8899";
+        window.onload = () => {
+            // Optional: append email if available
+            const email = localStorage.getItem("email"); // if you saved it
+            if(email) {
+                window.location.href = `${backendUrl}?email=${encodeURIComponent(email)}`;
+            } else {
+                window.location.href = backendUrl;
+            }
+        };
+    </script>
+</head>
+<body>
+    <h1>Redirecting to ROSBoard backend...</h1>
+</body>
+</html>
