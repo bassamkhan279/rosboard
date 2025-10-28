@@ -4,6 +4,7 @@ import subprocess
 import pathlib
 import json
 import sys
+import socket
 from aiohttp import web, ClientSession
 import aiohttp_session
 from aiohttp_session import SimpleCookieStorage, get_session
@@ -21,10 +22,9 @@ HTML_DIR = BASE_DIR / "html"
 
 # ---------- Supabase Config ----------
 SUPABASE_URL = "https://pxlbmyygaiqevnbcrnmj.supabase.co"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bGJteXlnYWlxZXZuYmNybm1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5OTkyMDQsImV4cCI6MjA3NTU3NTIwNH0.ZLYal4RUIM8BISLiGQorh-hVN_VDSPqjJjB2WnN4V04"
 SUPABASE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bGJteXlnYWlxZXZuYmNybm1qIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTk5OTIwNCwiZXhwIjoyMDc1NTc1MjA0fQ.ufkzZDGdo9wUzdc2SgbYcMKAVuUxKpIkzzRjJqfLRuA"
-
 POSTGREST_BASE = f"{SUPABASE_URL}/rest/v1"
-
 
 # ---------- Helper HTTP functions ----------
 def _supabase_headers():
@@ -35,7 +35,6 @@ def _supabase_headers():
         "Prefer": "return=representation",
     }
 
-
 async def sb_get(session: ClientSession, path: str, params: dict = None):
     url = f"{POSTGREST_BASE}/{path}"
     async with session.get(url, headers=_supabase_headers(), params=params) as resp:
@@ -43,7 +42,6 @@ async def sb_get(session: ClientSession, path: str, params: dict = None):
             return resp.status, await resp.json()
         except Exception:
             return resp.status, {"error": await resp.text()}
-
 
 async def sb_post(session: ClientSession, path: str, payload: dict):
     url = f"{POSTGREST_BASE}/{path}"
@@ -53,17 +51,27 @@ async def sb_post(session: ClientSession, path: str, payload: dict):
         except Exception:
             return resp.status, {"raw": await resp.text()}
 
-
 # ---------- App startup / cleanup ----------
 async def on_startup(app):
     print("[Supabase] Creating HTTP client session")
     app["http_client"] = ClientSession()
 
-
 async def on_cleanup(app):
     print("[Supabase] Closing HTTP client session")
     await app["http_client"].close()
 
+# ---------- Utility: Check if port is in use ----------
+def is_port_in_use(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('localhost', port)) == 0
+
+# ---------- Run ROSBoard Backend ----------
+def run_rosboard_backend():
+    if is_port_in_use(8899):
+        print("[ROSBoard] ⚠️ Backend already running on port 8899, skipping spawn.")
+        return
+    print("[ROSBoard] 🚀 Launching backend on port 8899...")
+    subprocess.Popen(["python3", str(BASE_DIR / "rosboard.py"), "--port", "8899"])
 
 # ---------- Login ----------
 async def login_page(request):
@@ -77,14 +85,11 @@ async def login_page(request):
 
         # --- Supabase authentication ---
         async with ClientSession() as session:
-            login_payload = {
-                "email": email,
-                "password": pwd
-            }
+            login_payload = {"email": email, "password": pwd}
             async with session.post(
                 f"{SUPABASE_URL}/auth/v1/token?grant_type=password",
                 headers={
-                    "apikey": SUPABASE_ROLE_KEY,
+                    "apikey": SUPABASE_ANON_KEY,
                     "Content-Type": "application/json",
                 },
                 json=login_payload
@@ -96,7 +101,7 @@ async def login_page(request):
                     session_data = await get_session(request)
                     session_data["user"] = {"email": email}
                     print(f"[Login] ✅ {email} logged in successfully.")
-                    # Redirect to ROSBoard backend on port 8899
+                    # Redirect all roles to ROSBoard
                     raise web.HTTPFound("http://localhost:8899")
                 else:
                     print(f"[Login] ❌ Invalid credentials for {email}.")
@@ -106,13 +111,11 @@ async def login_page(request):
                     )
     return web.FileResponse(login_path)
 
-
 # ---------- Logout ----------
 async def logout(request):
     session = await get_session(request)
     session.invalidate()
     raise web.HTTPFound("/login")
-
 
 # ---------- Register ----------
 async def register_page(request):
@@ -134,7 +137,6 @@ async def register_page(request):
             return web.Response(text="Registration failed", status=500)
     return web.FileResponse(register_path)
 
-
 # ---------- Forgot Password ----------
 async def forgot_password_page(request):
     forgot_path = WEB_DIR / "forgot_password.html"
@@ -150,7 +152,6 @@ async def forgot_password_page(request):
             return web.Response(text="Email not found", status=404)
     return web.FileResponse(forgot_path)
 
-
 # ---------- Middleware ----------
 @web.middleware
 async def require_login_middleware(request, handler):
@@ -161,13 +162,6 @@ async def require_login_middleware(request, handler):
     if "user" not in session:
         raise web.HTTPFound("/login")
     return await handler(request)
-
-
-# ---------- Run ROSBoard Backend ----------
-def run_rosboard_backend():
-    print("[ROSBoard] 🚀 Launching backend on port 8899...")
-    subprocess.Popen(["python3", str(BASE_DIR / "rosboard.py"), "--port", "8899"])
-
 
 # ---------- Main ----------
 def main():
@@ -198,7 +192,6 @@ def main():
 
     print("[ROSBoard] ✅ Server running at: http://localhost:8888")
     web.run_app(app, host="0.0.0.0", port=8888)
-
 
 if __name__ == "__main__":
     main()
