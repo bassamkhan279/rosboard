@@ -282,7 +282,12 @@ def run_rosboard_backend():
 # ---------- App Setup ----------
 def main():
     print("[ROSBoard] 🔧 Starting login + admin server...")
-    threading.Thread(target=run_rosboard_backend, daemon=True).start()
+
+    # 🧩 Only spawn backend if not already running from __main__.py
+    if SPAWN_BACKEND:
+        threading.Thread(target=run_rosboard_backend, daemon=True).start()
+    else:
+        print("[ROSBoard] ⚙️ Running in main mode — backend not spawned to avoid recursion.")
 
     app = web.Application(middlewares=[
         aiohttp_session.session_middleware(SimpleCookieStorage()),
@@ -309,6 +314,7 @@ def main():
 
     print("[ROSBoard] ✅ Server running at: http://localhost:8888")
     web.run_app(app, host="0.0.0.0", port=8888)
+
 
 if __name__ == "__main__":
     main()
