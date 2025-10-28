@@ -6,6 +6,14 @@ import json
 from aiohttp import web, ClientSession
 import aiohttp_session
 from aiohttp_session import SimpleCookieStorage, get_session
+import sys
+
+# ---------- Prevent Recursive Self-Spawning ----------
+if sys.argv[0].endswith("__main__.py"):
+    # When running via "python3 -m rosboard", don't re-launch itself
+    SPAWN_BACKEND = False
+else:
+    SPAWN_BACKEND = True
 
 # ---------- Paths ----------
 BASE_DIR = pathlib.Path(__file__).parent
