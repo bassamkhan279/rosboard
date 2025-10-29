@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>ROSBoard Camera</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <!-- This is the main ROSBoard CSS -->
+  <link rel="stylesheet" href="css/material.blue_grey-indigo.min.css">
+  <link rel="stylesheet" href="css/rosboard.css">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="mdl-color--grey-100">
+
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+  <header class="mdl-layout__header">
+    <div class="mdl-layout__header-row">
+      <span class="mdl-layout-title">Robot Camera Feed</span>
+      <div class="mdl-layout-spacer"></div>
+      <div id="connection-status" class="connection-status-widget">
+        <i class="material-icons" style="color: red;">power_off</i>
+      </div>
+    </div>
+  </header>
+  
+  <!-- Main content area where we put ONLY the camera -->
+  <main class="mdl-layout__content">
+    <div class="mdl-grid" id="main-grid">
+      
+      <!-- Start: Custom Camera Widget -->
+      <!-- We use 'mdl-cell--12-col' to make it take the full width -->
+      <div class="ros-widget-card mdl-card mdl-cell mdl-cell--12-col mdl-shadow--2dp">
+          <div class="mdl-card__title">
+              <h5 class="mdl-card__title-text">/camera/rgb/image_color/compressed</h5>
+          </div>
+          
+          <!-- 
+            This is the magic part.
+            - 'data-widget="camera"' tells ROSBoard to use the camera viewer.
+            - 'data-topic=".../compressed"' is your compressed image topic.
+          -->
+          <div class="ros-widget" 
+               data-widget="camera" 
+               data-topic="/camera/rgb/image_color/compressed"
+               data-topic-type="sensor_msgs/CompressedImage">
+              
+              <!-- This is where the image will be displayed -->
+              <div class="ros-widget-content">
+                  <img style="width: 100%; height: auto;" src="" />
+              </div>
+          </div>
+      </div>
+      <!-- End: Custom Camera Widget -->
+
+    </div>
+  </main>
+</div>
+
+<!-- Load all the necessary ROSBoard JavaScript files -->
+<script src="js/material.min.js"></script>
+<script src="js/msg.js"></script>
+<script src="js/rosboard.js"></script>
+<script src="js/widgets.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>
