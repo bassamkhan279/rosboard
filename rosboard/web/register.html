@@ -23,12 +23,22 @@
       text-align: center;
       width: 300px;
     }
-    input, button {
+    /* 🟢 ADDED 'select' TO THIS RULE */
+    input, button, select {
       width: 90%;
       margin: 10px 0;
       padding: 10px;
       border: none;
       border-radius: 6px;
+    }
+    /* 🟢 ADDED STYLE FOR select BACKGROUND */
+    select {
+      background: #fff;
+      color: #333;
+      /* Ensures text is left-aligned */
+      text-align: left;
+      /* For older browsers */
+      text-indent: 5px;
     }
     button {
       background: #43a047;
@@ -50,6 +60,15 @@
     <form method="POST" action="/register">
       <input type="email" name="email" placeholder="Email" required /><br/>
       <input type="password" name="password" placeholder="Password (min 6 chars)" required /><br/>
+      
+      <!-- 🟢 START: ADDED ROLE DROPDOWN -->
+      <select name="role" required>
+        <option value="" disabled selected>Choose a role...</option>
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+      </select><br/>
+      <!-- 🟢 END: ADDED ROLE DROPDOWN -->
+
       <button type="submit">Register</button>
     </form>
     <p><a href="/login">Back to login</a></p>
