@@ -76,11 +76,11 @@ def run_rosboard_backend():
 # ---------- Login ----------
 async def login_page(request):
     login_path = WEB_DIR / "login.html"
-    redirect_page = WEB_DIR / "redirect.html"  # New redirect page
+    redirect_page = WEB_DIR / "redirect.html"  # Redirect page
 
     if request.method == "POST":
         data = await request.post()
-        email = data.get("email")  # Fixed key: your form uses 'email', not 'username'
+        email = data.get("email")  # Fixed: match HTML form
         pwd = data.get("password")
 
         print(f"[Login Debug] Attempting Supabase login for {email}")
@@ -100,13 +100,12 @@ async def login_page(request):
                 print(f"[Supabase] Auth result: {result}")
 
                 if resp.status == 200 and "access_token" in result:
-                    # Save email in session (optional)
                     session_data = await get_session(request)
                     session_data["user"] = {"email": email}
                     print(f"[Login] ✅ {email} logged in successfully.")
 
-                    # Redirect to static redirect page
-                    raise web.HTTPFound("/static/redirect.html")
+                    # Redirect to backend via static page
+                    raise web.HTTPFound("/redirect.html")
                 else:
                     print(f"[Login] ❌ Invalid credentials for {email}.")
                     return web.Response(
@@ -114,7 +113,6 @@ async def login_page(request):
                         content_type='text/html'
                     )
     return web.FileResponse(login_path)
-
 
 # ---------- Logout ----------
 async def logout(request):
