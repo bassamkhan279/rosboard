@@ -22,6 +22,27 @@
         <script type="text/javascript" src="js/index.js" defer></script>
 
         <title></title>
+        
+        <!-- 🟢 NEW: Style for the new sidebar user area -->
+        <style>
+          .sidebar-user-info {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 16px;
+            box-sizing: border-box; /* Important */
+          }
+          .sidebar-user-info .email {
+            font-size: 0.9em;
+            opacity: 0.7;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-left: 16px; /* Align with links */
+            padding-bottom: 8px;
+          }
+        </style>
     </head>
     <body>
         <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
@@ -29,40 +50,38 @@
             <div class="mdl-layout__header-row">
               <!-- Title -->
               <span class="mdl-layout-title">ROSboard</span>
-              <!-- Add spacer, to align navigation to the right -->
               <div class="mdl-layout-spacer"></div>
             </div>
           </header>
           <div class="mdl-layout__drawer">
+            <!-- This is your existing sidebar menu -->
             <nav id="topics-nav" class="mdl-navigation">
+                
                 <div id="topics-nav-system-title" class="topics-nav-title">System</div>
                 <div id="topics-nav-system"></div>
 
-                <!-- START: === Your Changes === -->
-
-                <!-- 1. Changed "ROS topics" to "ROBOT 2" -->
+                <!-- START: === Your Custom Links === -->
                 <div id="topics-nav-ros-title" class="topics-nav-title">ROBOT 2</div>
                 
-                <!-- 2. DELETED the <div id="topics-nav-ros"></div> -->
-                <!--    This stops JavaScript from adding the topic list here. -->
-                
-                <!-- 3. ADDED your new static "Camera" link -->
                 <a class="mdl-navigation__link" href="/rosboard/camera.html" style="display: flex; align-items: center;">
                   <i class="material-icons" style="padding-right: 16px;">videocam</i>
                   Camera
                 </a>
                 
-                <!-- 
-                (Optional) You can add more links here just like the one above:
-                <a class="mdl-navigation__link" href="/rosboard/map.html" style="display: flex; align-items: center;">
-                  <i class="material-icons" style="padding-right: 16px;">map</i>
-                  Map
+                <!-- 🟢 ADDED: The Odom link -->
+                <a class="mdl-navigation__link" href="/rosboard/odom.html" style="display: flex; align-items: center;">
+                  <i class="material-icons" style="padding-right: 16px;">explore</i>
+                  Odom
                 </a>
-                -->
+                <!-- END: === Your Custom Links === -->
 
-                <!-- END: === Your Changes === -->
                 
                 <div style="opacity:0.3;" id="topics-nav-unsupported"></div>
+
+                <!-- 🟢 NEW: Placeholder for user links (Profile, Admin, etc) -->
+                <div class="sidebar-user-info" id="user-links">
+                    <!-- Links will be inserted here by JS -->
+                </div>
             </nav>
           </div>
           <main class="mdl-layout__content">
@@ -75,8 +94,69 @@
         
       <div id="demo-toast-example" class="mdl-js-snackbar mdl-snackbar">
         <div class="mdl-snackbar__text"></div>
-        <button class="mdl-snackbar__action" type="button"></button>
+        <button classD="mdl-snackbar__action" type="button"></button>
       </div>
 
+      <!-- 🟢 NEW: Script to fetch session and build sidebar -->
+      <script>
+        document.addEventListener("DOMContentLoaded", () => {
+          const userLinksContainer = document.getElementById("user-links");
+
+          // Fetch the user session from the API we created
+          fetch('/api/get_session')
+            .then(response => {
+              if (response.ok) {
+                return response.json();
+              }
+              // If not OK, we're not logged in, redirect.
+              // Use /login since we are not in the /rosboard/ path
+              window.location.href = '/login';
+            })
+            .then(user => {
+              if (!user || !user.email) {
+                window.location.href = '/login';
+                return;
+              }
+
+              let linksHtml = '';
+
+              // 1. Add Admin Panel link (if user is admin)
+              if (user.role === 'admin') {
+                linksHtml += `
+                  <a class="mdl-navigation__link" href="/admin" style="display: flex; align-items: center;">
+                    <i class="material-icons" style="padding-right: 16px;">admin_panel_settings</i>
+                    Admin Panel
+                  </a>
+                `;
+              }
+
+              // 2. Add Profile link (for everyone)
+              linksHtml += `
+                <a class="mdl-navigation__link" href="/profile" style="display: flex; align-items: center;">
+                  <i class="material-icons" style="padding-right: 16px;">person</i>
+                  Profile
+                </a>
+              `;
+              
+              // 3. Add email and logout button
+              linksHtml += `
+                <div class="email" title="${user.email}">${user.email}</div>
+                <a class="mdl-navigation__link" href="/logout" style="display: flex; align-items: center;">
+                  <i class="material-icons" style="padding-right: 16px;">logout</i>
+                  Logout
+                </a>
+              `;
+
+              // Add all the new links to the sidebar
+              userLinksContainer.innerHTML = linksHtml;
+            })
+            .catch(error => {
+              console.error("Error fetching session:", error);
+              // If anything fails, send back to login
+              // window.location.href = '/login';
+            });
+        });
+      </script>
     </body>
 </html>
+
