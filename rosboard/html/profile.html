@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - ROSBoard</title>
+    <style>
+        body {
+            background: url('/static/images/background.jpg') no-repeat center center fixed;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: auto; /* Changed to auto for scrolling */
+            min-height: 100vh;
+            margin: 0;
+            color: #fff;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px 40px;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            text-align: center;
+            margin-bottom: 20px; /* Added margin */
+        }
+        h1, h2 {
+            border-bottom: 2px solid #43a047;
+            padding-bottom: 10px;
+        }
+        p {
+            font-size: 1.2em;
+        }
+        span {
+            font-weight: bold;
+            color: #66bb6a;
+        }
+        a {
+            color: #90caf9;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+            font-size: 1.1em;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        /* Form Styles */
+        input[type="password"] {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 70%;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            background-color: #43a047;
+            color: white;
+        }
+        button:hover {
+            background-color: #66bb6a;
+        }
+        .danger-zone {
+            border-top: 2px solid #e53935;
+            margin-top: 30px;
+            padding-top: 20px;
+        }
+        .danger-zone button {
+            background-color: #e53935;
+        }
+        .danger-zone button:hover {
+            background-color: #f44336;
+        }
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none; /* Hidden by default */
+        }
+        .message.success {
+            background-color: #43a047;
+            color: white;
+        }
+        .message.error {
+            background-color: #e53935;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Your Profile</h1>
+        <p>Hello, <span id="user-email">loading...</span>!</p>
+        <p>Your role is: <span id="user-role">...</span></p>
+
+        <a href="/rosboard/index.html">Back to Dashboard</a>
+        <a href="/logout">Logout</a>
+    </div>
+
+    <!-- Change Password Section -->
+    <div class="container">
+        <h2>Change Password</h2>
+        <div id="password-message-box" class="message"></div>
+        <form id="password-form">
+            <input type="password" id="new-password" placeholder="New Password (min 6 chars)" required>
+            <button type="submit">Update Password</button>
+        </form>
+    </div>
+
+    <!-- Delete Account Section -->
+    <div class="container danger-zone">
+        <h2>Danger Zone</h2>
+        <div id="delete-message-box" class="message"></div>
+        <p>This action cannot be undone. This will permanently delete your account.</p>
+        <button id="delete-account-button">Delete My Account</button>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            let currentUser = null;
+            const userEmailEl = document.getElementById('user-email');
+            const userRoleEl = document.getElementById('user-role');
+            const passwordForm = document.getElementById('password-form');
+            const passwordInput = document.getElementById('new-password');
+            const deleteButton = document.getElementById('delete-account-button');
+
+            // --- Show a message ---
+            function showMessage(boxId, text, type = 'success') {
+                const messageBox = document.getElementById(boxId);
+                messageBox.textContent = text;
+                messageBox.className = `message ${type}`;
+                messageBox.style.display = 'block';
+                setTimeout(() => { messageBox.style.display = 'none'; }, 3000);
+            }
+
+            // --- 1. Fetch user data on load ---
+            fetch('/api/get_session')
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    window.location.href = '/login'; // Not logged in
+                })
+                .then(user => {
+                    if (user && user.email) {
+                        currentUser = user;
+                        userEmailEl.textContent = user.email;
+                        userRoleEl.textContent = user.role;
+                    } else {
+                        window.location.href = '/login'; // Session data is invalid
+                    }
+                })
+                .catch(() => {
+                    window.location.href = '/login'; // API fetch failed
+                });
+            
+            // --- 2. Handle Password Change ---
+            passwordForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const newPassword = passwordInput.value;
+
+                if (newPassword.length < 6) {
+                    showMessage('password-message-box', 'Password must be at least 6 characters', 'error');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/user/password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password: newPassword })
+                    });
+                    
+                    const result = await response.json();
+                    if (response.ok) {
+                        showMessage('password-message-box', 'Password updated successfully!', 'success');
+                        passwordInput.value = '';
+                    } else {
+                        throw new Error(result.error || 'Failed to update password');
+                    }
+                } catch (error) {
+                    showMessage('password-message-box', `Error: ${error.message}`, 'error');
+                }
+            });
+
+            // --- 3. Handle Account Delete ---
+            deleteButton.addEventListener('click', async () => {
+                if (!currentUser || !confirm(`Are you absolutely sure you want to delete your account: ${currentUser.email}? This action cannot be undone.`)) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/user', {
+                        method: 'DELETE'
+                    });
+
+                    const result = await response.json();
+                    if (response.ok) {
+                        showMessage('delete-message-box', 'Account deleted. Logging you out...', 'success');
+                        // Log the user out by redirecting to /login
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 2000);
+                    } else {
+                        throw new Error(result.error || 'Failed to delete account');
+                    }
+                } catch (error) {
+                    showMessage('delete-message-box', `Error: ${error.message}`, 'error');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
