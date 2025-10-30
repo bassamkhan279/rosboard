@@ -11,6 +11,31 @@
   <link rel="stylesheet" href="css/rosboard.css">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- 🟢 NEW: Style for the new sidebar user area -->
+  <style>
+    .sidebar-user-info {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding: 16px;
+      box-sizing: border-box; /* Important */
+    }
+    .sidebar-user-info .email {
+      font-size: 0.9em;
+      opacity: 0.7;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-left: 16px; /* Align with links */
+      padding-bottom: 8px;
+    }
+    /* Make sidebar links white */
+    .mdl-layout__drawer .mdl-navigation__link {
+        color: white;
+    }
+  </style>
 </head>
 <body class="mdl-color--grey-100">
 
@@ -25,34 +50,103 @@
     </div>
   </header>
   
-  <!-- Main content area where we put ONLY the camera -->
+  <!-- 🟢 NEW: Added the full sidebar drawer from index.html -->
+  <div class="mdl-layout__drawer">
+    <nav id="topics-nav" class="mdl-navigation">
+        
+        <div id="topics-nav-system-title" class="topics-nav-title">System</div>
+        <div id="topics-nav-system"></div>
+
+        <!-- START: === Your Custom Links === -->
+        <div id="topics-nav-ros-title" class="topics-nav-title">ROBOT 2</div>
+        
+        <a class="mdl-navigation__link" href="/rosboard/index.html" style="display: flex; align-items: center;">
+            <i class="material-icons" style="padding-right: 16px;">home</i>
+            Home
+        </a>
+
+        <a class="mdl-navigation__link" href="/rosboard/camera.html" style="display: flex; align-items: center;">
+          <i class="material-icons" style="padding-right: 16px;">videocam</i>
+          Camera
+        </a>
+        
+        <a class="mdl-navigation__link" href="/rosboard/odom.html" style="display: flex; align-items: center;">
+          <i class="material-icons" style="padding-right: 16px;">explore</i>
+          Odom
+        </a>
+        <!-- END: === Your Custom Links === -->
+
+        
+        <div style="opacity:0.3;" id="topics-nav-unsupported"></div>
+
+        <!-- Placeholder for user links (Profile, Admin, etc) -->
+        <div class="sidebar-user-info" id="user-links">
+            <!-- Links will be inserted here by JS -->
+        </div>
+    </nav>
+  </div>
+  
+  <!-- Main content area where we put the widgets -->
   <main class="mdl-layout__content">
     <div class="mdl-grid" id="main-grid">
       
       <!-- Start: Custom Camera Widget -->
-      <!-- We use 'mdl-cell--12-col' to make it take the full width -->
       <div class="ros-widget-card mdl-card mdl-cell mdl-cell--12-col mdl-shadow--2dp">
           <div class="mdl-card__title">
               <h5 class="mdl-card__title-text">/camera/rgb/image_color/compressed</h5>
           </div>
           
-          <!-- 
-            This is the magic part.
-            - 'data-widget="camera"' tells ROSBoard to use the camera viewer.
-            - 'data-topic=".../compressed"' is your compressed image topic.
-          -->
           <div class="ros-widget" 
                data-widget="camera" 
                data-topic="/camera/rgb/image_color/compressed"
                data-topic-type="sensor_msgs/CompressedImage">
               
-              <!-- This is where the image will be displayed -->
               <div class="ros-widget-content">
                   <img style="width: 100%; height: auto;" src="" />
               </div>
           </div>
       </div>
       <!-- End: Custom Camera Widget -->
+
+      <!-- START: Odom Widget -->
+      <div class="ros-widget-card mdl-card mdl-cell mdl-cell--12-col mdl-shadow--2dp">
+          <div class="mdl-card__title">
+              <h5 class="mdl-card__title-text">/odom</h5>
+          </div>
+          <div class="ros-widget" 
+               data-widget="odom" 
+               data-topic="/odom"
+               data-topic-type="nav_msgs/Odometry">
+              
+              <div class="ros-widget-content">
+                  <div style="width: 100%; height: 350px; position: relative;"></div>
+              </div>
+          </div>
+      </div>
+      <!-- END: Odom Widget -->
+
+      <!-- 🟢 START: Added the Battery Widget Below -->
+      <!-- I made this mdl-cell--6-col so it takes half the width. You can change to 12 if you want it full width -->
+      <div class="ros-widget-card mdl-card mdl-cell mdl-cell--6-col mdl-shadow--2dp">
+          <div class="mdl-card__title">
+              <h5 class="mdl-card__title-text">/battery_voltages</h5>
+          </div>
+          <!-- 
+            data-widget="number" is used to display simple text/numeric values.
+            I've assumed the topic type is std_msgs/Float32, which is common.
+            If it's a different type (like std_msgs/String), the "number" widget can still display it.
+          -->
+          <div class="ros-widget" 
+               data-widget="number" 
+               data-topic="/battery_voltages"
+               data-topic-type="std_msgs/Float32">
+              
+              <div class="ros-widget-content">
+                  <!-- The number widget will put the value here -->
+              </div>
+          </div>
+      </div>
+      <!-- 🟢 END: Battery Widget -->
 
     </div>
   </main>
@@ -65,5 +159,66 @@
 <script src="js/widgets.js"></script>
 <script src="js/main.js"></script>
 
+<!-- 🟢 NEW: Script to fetch session and build sidebar -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const userLinksContainer = document.getElementById("user-links");
+
+    // Fetch the user session from the API we created
+    fetch('/api/get_session')
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        }
+        // If not OK, we're not logged in, redirect.
+        window.location.href = '/login';
+      })
+      .then(user => {
+        if (!user || !user.email) {
+          window.location.href = '/login';
+          return;
+        }
+
+        let linksHtml = '';
+
+        // 1. Add Admin Panel link (if user is admin)
+        if (user.role === 'admin') {
+          linksHtml += `
+            <a class="mdl-navigation__link" href="/admin" style="display: flex; align-items: center;">
+              <i class="material-icons" style="padding-right: 16px;">admin_panel_settings</i>
+              Admin Panel
+            </a>
+          `;
+        }
+
+        // 2. Add Profile link (for everyone)
+        linksHtml += `
+          <a class="mdl-navigation__link" href="/profile" style="display: flex; align-items: center;">
+            <i class="material-icons" style="padding-right: 16px;">person</i>
+            Profile
+          </a>
+        `;
+        
+        // 3. Add email and logout button
+        linksHtml += `
+          <div class="email" title="${user.email}">${user.email}</div>
+          <a class="mdl-navigation__link" href="/logout" style="display: flex; align-items: center;">
+            <i class="material-icons" style="padding-right: 16px;">logout</i>
+            Logout
+          </a>
+        `;
+
+        // Add all the new links to the sidebar
+        userLinksContainer.innerHTML = linksHtml;
+      })
+      .catch(error => {
+        console.error("Error fetching session:", error);
+        // If anything fails, send back to login
+        // window.location.href = '/login';
+      });
+  });
+</script>
+
 </body>
 </html>
+
