@@ -36,9 +36,7 @@
         color: white;
     }
 
-    /* 🟢 START: --- Battery Widget CSS --- 🟢 */
-    
-    /* This makes all widget boxes dark */
+    /* Battery Widget CSS */
     .ros-widget-card {
         background-color: #424242; 
     }
@@ -48,8 +46,6 @@
     .ros-widget-content div, .ros-widget-content span {
         color: #ffffff;
     }
-
-    /* Styles for the new custom battery */
     .battery-widget-content {
         padding: 16px;
         display: flex;
@@ -57,8 +53,6 @@
         justify-content: center;
         gap: 20px;
     }
-
-    /* The battery icon outline */
     .battery-icon {
         width: 100px;
         height: 50px;
@@ -76,27 +70,22 @@
         background: #fff;
         border-radius: 0 4px 4px 0;
     }
-
-    /* The colored fill level */
     .battery-fill {
         height: 100%;
-        width: 100%; /* Default to full */
-        background-color: #4caf50; /* Default to green */
+        width: 100%; 
+        background-color: #4caf50; 
         border-radius: 2px;
         transition: width 0.5s ease, background-color 0.5s ease;
     }
-
-    /* The percentage text */
     .battery-text {
         font-size: 2.5em;
         font-weight: 300;
         color: #fff;
     }
-    /* 🟢 END: --- New Battery Widget CSS --- 🟢 */
-
   </style>
 </head>
-<body class="mdl-color--grey-100">
+<!-- 🟢 FIX: Removed "mdl-color--grey-100" from class to make background dark -->
+<body>
 
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
   <header class="mdl-layout__header">
@@ -163,16 +152,11 @@
           </div>
       </div>
       
-      <!-- 🟢 START: --- New Battery Widget --- 🟢 -->
-      <!-- We removed the Odom widget and the old battery widget -->
+      <!-- Battery Widget -->
       <div class="ros-widget-card mdl-card mdl-cell mdl-cell--6-col mdl-shadow--2dp">
           <div class="mdl-card__title">
               <h5 class="mdl-card__title-text">Battery Status</h5>
           </div>
-          <!-- 
-            This is our new custom widget. It doesn't use data-widget.
-            The JavaScript at the bottom of the page will control it.
-          -->
           <div class="battery-widget-content">
               <div class="battery-icon">
                   <div id="battery-fill" class="battery-fill"></div>
@@ -180,14 +164,15 @@
               <div id="battery-text" class="battery-text">--%</div>
           </div>
       </div>
-      <!-- 🟢 END: --- New Battery Widget --- 🟢 -->
 
     </div>
   </main>
 </div>
 
-<!-- Load all the necessary ROSBoard JavaScript files -->
-<!-- We must load index.js so the rosboard object is created and connected -->
+<!-- 
+  START: --- SCRIPT TYPOS FIXED ---
+  These lines are now all correct.
+-->
 <script type="text/javascript" src="js/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="></script>
 <script type="text/javascript" src="js/material.min.js" defer></script>
 <script type="text/javascript" src="js/json5.min.js"></script>
@@ -197,9 +182,10 @@
 <script type="text/javascript" src="js/eventemitter2.min.js"></script>
 <script type="text/javascript" src="js/import-helper.js"></script>
 <script type="text/javascript" src="js/leaflet.js"></script>
-<script type.text/javascript" src="js/gl-matrix.js"></script>
+<script type="text/javascript" src="js/gl-matrix.js"></script>
 <script type="text/javascript" src="js/litegl.min.js"></script>
 <script type="text/javascript" src="js/index.js" defer></script>
+<!-- END: --- SCRIPT TYPOS FIXED --- -->
 
 
 <!-- Script for the dynamic user sidebar -->
@@ -249,10 +235,8 @@
   });
 </script>
 
-<!-- 🟢 START: --- New Battery Widget JavaScript --- 🟢 -->
+<!-- Battery Widget JavaScript -->
 <script>
-    // This function runs once the main rosboard script (index.js) has loaded
-    // and connected to the websocket.
     function onRosboardConnected() {
         console.log("ROSBoard connected. Subscribing to battery.");
 
@@ -285,8 +269,6 @@
         );
     }
 
-    // We need to wait for the main 'rosboard' object to be ready.
-    // We can check for it on an interval.
     const rosboardConnectInterval = setInterval(() => {
         if (window.rosboard && rosboard.isConnected) {
             clearInterval(rosboardConnectInterval); // Stop checking
@@ -294,7 +276,6 @@
         }
     }, 500); // Check every 500ms
 </script>
-<!-- 🟢 END: --- New Battery Widget JavaScript --- 🟢 -->
 
 </body>
 </html>
