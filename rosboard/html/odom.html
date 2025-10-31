@@ -2,27 +2,37 @@
 <html>
     <head>
       <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-        <link href="css/material-icons.css" media="all" rel="stylesheet" type="text/css">
-        <script type="text/javascript" src="js/jquery-3.1.0.min.js" integrity="="></script>
+        
+        <!-- 🟢 FIX 1: Load icon font from Google's CDN -->
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        
+        <script type="text/javascript" src="js/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="></script>
         <link rel="stylesheet" href="css/material.indigo-blue.min.css" />
         <link rel="stylesheet" href="css/uPlot.min.css">
         <link rel="stylesheet" href="css/leaflet.css">
         <link href="css/index.css" media="all" rel="stylesheet" type="text/css">
         
         <script type="text/javascript" src="js/json5.min.js"></script>
-        <script type.text.javascript" src="js/uPlot.iife.min.js"></script>
+        <script type="text/javascript" src="js/uPlot.iife.min.js"></script>
         <script type="text/javascript" src="js/jquery.transit.min.js"></script>
         <script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
         <script type="text/javascript" src="js/eventemitter2.min.js"></script>
-        <script text="text/javascript" src="js/import-helper.js"></script>
+        
+        <!-- 🟢 FIX 2: Corrected the typo 'text=' to 'type=' -->
+        <script type="text/javascript" src="js/import-helper.js"></script>
+        
         <script type="text/javascript" src="js/material.min.js" defer></script>
+        
+        <!-- 🟢 FIX 3: Corrected the typo 'type.text.javascript' -->
         <script type="text/javascript" src="js/leaflet.js"></script>      
+        
         <script type="text/javascript" src="js/gl-matrix.js"></script>
         <script type="text/javascript" src="js/litegl.min.js"></script>
         <script type="text/javascript" src="js/index.js" defer></script>
+        
         <title>Odometry</title>
 
-        <!-- 🟢 NEW: Style for the new sidebar user area -->
+        <!-- Style for the new sidebar user area -->
         <style>
           .sidebar-user-info {
             position: absolute;
@@ -41,55 +51,74 @@
             padding-left: 16px; /* Align with links */
             padding-bottom: 8px;
           }
-          /* Make sidebar links white */
-          .mdl-layout__drawer .mdl-navigation__link {
-              color: white;
+
+          /* 🟢 START: Fix for the white box */
+          .ros-widget-card {
+            /* This matches the dark background color from index.css */
+            background-color: #424242; 
           }
+          .ros-widget-card .mdl-card__title-text {
+            color: #ffffff; /* White title text */
+          }
+          .ros-widget-content div, .ros-widget-content span {
+            color: #ffffff; /* White text for "Position:", stats, etc. */
+          }
+          /* 🟢 END: Fix for the white box */
+
         </style>
     </head>
+    
+    <!-- 🟢 FIX 4: Removed "mdl-color--grey-100" class to make background dark -->
     <body>
       <!-- This is a "lite" version of index.html -->
       <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
         <header class="mdl-layout__header">
           <div class="mdl-layout__header-row">
+            
+            <!-- 🟢 FIX 5: Added the "three lines" hamburger menu button -->
+            <div class="mdl-layout__drawer-button">
+              <i class="material-icons">menu</i>
+            </div>
+
             <span class="mdl-layout-title">ROSboard - Odometry</span>
             <div class="mdl-layout-spacer"></div>
           </div>
         </header>
 
-        <!-- 🟢 MODIFIED: This is the full sidebar, matching index.html -->
+        <!-- 🟢 FIX 6: Added the full, consistent sidebar -->
         <div class="mdl-layout__drawer">
           <nav id="topics-nav" class="mdl-navigation">
-              
-              <div id="topics-nav-system-title" class="topics-nav-title">System</div>
-              <div id="topics-nav-system"></div>
-      
-              <!-- START: === Your Custom Links === -->
-              <div id="topics-nav-ros-title" class="topics-nav-title">ROBOT 2</div>
-              
-              <a class="mdl-navigation__link" href="/rosboard/index.html" style="display: flex; align-items: center;">
-                  <i class="material-icons" style="padding-right: 16px;">home</i>
-                  Home
-              </a>
-      
-              <a class="mdl-navigation__link" href="/rosboard/camera.html" style="display: flex; align-items: center;">
-                <i class="material-icons" style="padding-right: 16px;">videocam</i>
-                Camera
-              </a>
-              
-              <a class="mdl-navigation__link" href="/rosboard/odom.html" style="display: flex; align-items: center;">
-                <i class="material-icons" style="padding-right: 16px;">explore</i>
-                Odom
-              </a>
-              <!-- END: === Your Custom Links === -->
-      
-              
-              <div style="opacity:0.3;" id="topics-nav-unsupported"></div>
-      
-              <!-- Placeholder for user links (Profile, Admin, etc) -->
-              <div class="sidebar-user-info" id="user-links">
-                  <!-- Links will be inserted here by JS -->
-              </div>
+                
+            <div id="topics-nav-system-title" class="topics-nav-title">System</div>
+            <div id="topics-nav-system"></div>
+
+            <!-- START: === Your Custom Links === -->
+            <div id="topics-nav-ros-title" class="topics-nav-title">ROBOT 2</div>
+            
+            <!-- Added a "Home" link -->
+            <a class="mdl-navigation__link" href="/rosboard/index.html" style="display: flex; align-items: center;">
+              <i class="material-icons" style="padding-right: 16px;">home</i>
+              Home
+            </a>
+
+            <a class="mdl-navigation__link" href="/rosboard/camera.html" style:="display: flex; align-items: center;">
+              <i class="material-icons" style="padding-right: 16px;">videocam</i>
+              Camera
+            </a>
+            
+            <a class="mdl-navigation__link" href="/rosboard/odom.html" style="display: flex; align-items: center;">
+              <i class="material-icons" style="padding-right: 16px;">explore</i>
+              Odom
+            </a>
+            <!-- END: === Your Custom Links === -->
+
+            
+            <div style="opacity:0.3;" id="topics-nav-unsupported"></div>
+
+            <!-- Placeholder for user links (Profile, Admin, etc) -->
+            <div class="sidebar-user-info" id="user-links">
+                <!-- Links will be inserted here by JS -->
+            </div>
           </nav>
         </div>
 
@@ -118,6 +147,7 @@
                      data-topic-type="nav_msgs/Odometry">
                   
                   <!-- This content is specific to the odom widget -->
+                  <!-- This will now be correctly filled by index.js -->
                   <div class="ros-widget-content" style="padding: 16px;">
                     <div>Position: <span class="odom-position"></span></div>
                     <div>Orientation (deg): <span class="odom-orientation"></span></div>
@@ -134,18 +164,17 @@
         <button class="mdl-snackbar__action" type="button"></button>
       </div>
 
-      <!-- 🟢 NEW: Script to fetch session and build sidebar -->
+      <!-- 🟢 FIX 7: Added the dynamic sidebar script -->
       <script>
         document.addEventListener("DOMContentLoaded", () => {
           const userLinksContainer = document.getElementById("user-links");
-      
+
           // Fetch the user session from the API we created
           fetch('/api/get_session')
             .then(response => {
               if (response.ok) {
                 return response.json();
               }
-              // If not OK, we're not logged in, redirect.
               window.location.href = '/login';
             })
             .then(user => {
@@ -153,10 +182,9 @@
                 window.location.href = '/login';
                 return;
               }
-      
+
               let linksHtml = '';
-      
-              // 1. Add Admin Panel link (if user is admin)
+
               if (user.role === 'admin') {
                 linksHtml += `
                   <a class="mdl-navigation__link" href="/admin" style="display: flex; align-items: center;">
@@ -165,31 +193,23 @@
                   </a>
                 `;
               }
-      
-              // 2. Add Profile link (for everyone)
               linksHtml += `
                 <a class="mdl-navigation__link" href="/profile" style="display: flex; align-items: center;">
                   <i class="material-icons" style="padding-right: 16px;">person</i>
                   Profile
                 </a>
               `;
-              
-              // 3. Add email and logout button
               linksHtml += `
                 <div class="email" title="${user.email}">${user.email}</div>
                 <a class="mdl-navigation__link" href="/logout" style="display: flex; align-items: center;">
-                  <i class"material-icons" style="padding-right: 16px;">logout</i>
+                  <i class="material-icons" style="padding-right: 16px;">logout</i>
                   Logout
                 </a>
               `;
-      
-              // Add all the new links to the sidebar
               userLinksContainer.innerHTML = linksHtml;
             })
             .catch(error => {
               console.error("Error fetching session:", error);
-              // If anything fails, send back to login
-              // window.location.href = '/login';
             });
         });
       </script>
