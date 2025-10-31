@@ -56,7 +56,6 @@ async def sb_auth_post(session: ClientSession, path: str, payload: dict):
             data = {"raw": await resp.text()}
         return resp.status, data
         
-# 🟢 NEW: Admin auth helper (uses SERVICE_ROLE_KEY)
 async def sb_admin_auth_post(session: ClientSession, path: str, payload: dict):
     url = f"{AUTH_BASE}/{path}"
     headers = {
@@ -159,6 +158,7 @@ async def rosboard_proxy(request):
             async with client_session.ws_connect(ws_target_url) as ws_backend:
                 print("[Rosboard Proxy] ✅ WebSocket connection established.")
                 
+                # 🟢 START: --- THIS FUNCTION IS NOW FIXED ---
                 async def forward(ws_from, ws_to):
                     async for msg in ws_from:
                         if ws_to.closed:
@@ -169,8 +169,10 @@ async def rosboard_proxy(request):
                         elif msg.type == aiohttp.WSMsgType.BINARY:
                             await ws_to.send_bytes(msg.data)
                         elif msg.type == aiohttp.WSMsgType.CLOSED or msg.type == aiohttp.WSMsgType.ERROR:
-                            await ws_to.close(code=msg.data)
+                            # Just close the other socket, don't pass data
+                            await ws_to.close() 
                             break 
+                # 🟢 END: --- THIS FUNCTION IS NOW FIXED ---
                 
                 await asyncio.gather(
                     forward(ws_response, ws_backend),
@@ -203,7 +205,7 @@ async def rosboard_proxy(request):
                 return response
                 
         except Exception as e:
-            print(f"[RosBsoard Proxy] ❌ HTTP backend connection failed: {e}")
+            print(f"[Rosboard Proxy] ❌ HTTP backend connection failed: {e}")
             return web.Response(text="Rosboard backend is not reachable.", status=502)
 
 # ---------- Login ----------
@@ -357,7 +359,6 @@ async def get_users(request):
         return web.json_response(data)
     return web.json_response({"error": "Failed to fetch users"}, status=status)
 
-# 🟢 NEW: --- Admin Create User API ---
 async def admin_create_user(request):
     """API for an admin to create a new user."""
     await require_admin(request)
@@ -369,9 +370,6 @@ async def admin_create_user(request):
     if not email or not password:
         return web.json_response({"error": "Email and password are required"}, status=400)
     
-    # --- Step 1: Create Auth user using Admin privileges ---
-    # We use sb_admin_auth_post (with SERVICE_ROLE_KEY) to create a user
-    # without sending a confirmation email.
     print(f"[Admin] Attempting to create auth user for {email}")
     auth_payload = {
         "email": email, 
@@ -394,7 +392,6 @@ async def admin_create_user(request):
         print(f"[Admin] ❌ CRITICAL: Could not get ID from auth result: {auth_result}")
         return web.json_response({"error": "Could not get user ID from auth result"}, status=500)
 
-    # --- Step 2: Create the user's profile in 'profiles' table ---
     profile_payload = {"email": email, "role": role, "id": auth_user_id}
     profile_status, profile_created = await sb_post(
         request.app["http_client"], "profiles", profile_payload
@@ -405,9 +402,7 @@ async def admin_create_user(request):
         return web.json_response(profile_created[0]) # Return the new user object
     else:
         print(f"[Admin] ❌ Profile creation failed: {profile_created}")
-        # TODO: Delete the auth user we just created to clean up
         return web.json_response({"error": "Profile creation failed"}, status=500)
-# 🟢 END: --- Admin Create User API ---
 
 async def update_user_role(request):
     """API for admins to update a user's role."""
@@ -525,12 +520,7 @@ async def require_login_middleware(request, handler):
     if any(path.startswith(p) for p in public_paths):
         return await handler(request)
 
-    # 🟢 FIX: This is the bug. If a logged-in user goes to "/",
-    # redirect them to the full index.html path, not just /rosboard.
     session = await get_session(request)
-    if path == "/":
-        raise web.HTTPFound("/login" if "user" not in session else "/rosboard/index.html")
-
     if "user" not in session:
         if path.startswith("/api/"): 
             return web.json_response({"error": "Not authenticated"}, status=401)
@@ -554,7 +544,7 @@ def main():
         require_login_middleware
     ])
     app.on_startup.append(on_startup)
-    app.on_cleanup.append(on_cleanup) 
+    app.on_cleanup.append(on_cleanup) # This was the typo fix
 
     # Routes
     app.router.add_get("/", login_page)
@@ -578,7 +568,6 @@ def main():
     # API Routes
     app.router.add_get("/api/get_session", get_user_session)
     app.router.add_get("/api/users", get_users)
-    # 🟢 NEW: API Route for creating users
     app.router.add_post("/api/users", admin_create_user) 
     app.router.add_put("/api/users/{id}/role", update_user_role)
     app.router.add_delete("/api/users/{id}", delete_user)
@@ -594,5 +583,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
