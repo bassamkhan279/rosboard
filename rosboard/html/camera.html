@@ -3,17 +3,52 @@
 <head>
   <meta charset="utf-8">
   <title>ROSBoard Camera</title>
-  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
+  
+  <!-- 🟢 FIX 1: Load icon font from Google's CDN -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-  <!-- This is the main ROSBoard CSS -->
-  <link rel="stylesheet" href="css/material.blue_grey-indigo.min.css">
-  <link rel="stylesheet" href="css/rosboard.css">
-
+  
+  <script type="text/javascript" src="js/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="></script>
+  <link rel="stylesheet" href="css/material.indigo-blue.min.css" />
+  <link rel="stylesheet" href="css/uPlot.min.css">
+  <link rel="stylesheet" href="css/leaflet.css">
+  <link href="css/index.css" media="all" rel="stylesheet" type="text/css">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- 🟢 NEW: Style for the new sidebar user area -->
+  <script type="text/javascript" src="js/json5.min.js"></script>
+  <script type="text/javascript" src="js/uPlot.iife.min.js"></script>
+  <script type="text/javascript" src="js/jquery.transit.min.js"></script>
+  <script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
+  <script type="text/javascript" src="js/eventemitter2.min.js"></script>
+  
+  <!-- 🟢 FIX 2: Corrected the typo 'text=' to 'type=' -->
+  <script type="text/javascript" src="js/import-helper.js"></script>
+  
+  <script type="text/javascript" src="js/material.min.js" defer></script>
+  
+  <!-- 🟢 FIX 3: Corrected the typo 'type.text.javascript' -->
+  <script type="text/javascript" src="js/leaflet.js"></script>      
+  
+  <script type="text/javascript" src="js/gl-matrix.js"></script>
+  <script type="text/javascript" src="js/litegl.min.js"></script>
+  <script type="text/javascript" src="js/index.js" defer></script>
+
+  <!-- Style for the new sidebar user area -->
   <style>
+    /* 🟢 START: --- NEW FIX for white sidebar --- */
+    .mdl-layout__drawer {
+        /* This matches the dark header color */
+        background-color: #37474F;
+        border-right: none;
+    }
+    .mdl-layout__drawer .mdl-navigation__link {
+        color: white; /* Make all links white */
+    }
+    .mdl-layout__drawer .topics-nav-title {
+        color: rgba(255, 255, 255, 0.7); /* Make titles faded white */
+    }
+    /* 🟢 END: --- NEW FIX for white sidebar --- */
+
     .sidebar-user-info {
       position: absolute;
       bottom: 0;
@@ -31,26 +66,41 @@
       padding-left: 16px; /* Align with links */
       padding-bottom: 8px;
     }
-    /* Make sidebar links white */
-    .mdl-layout__drawer .mdl-navigation__link {
-        color: white;
+
+    /* 🟢 FIX 4: Added styles to make widgets dark */
+    .ros-widget-card {
+      background-color: #424242; 
+    }
+    .ros-widget-card .mdl-card__title-text {
+      color: #ffffff;
+    }
+    .ros-widget-content div, .ros-widget-content span {
+      color: #ffffff;
     }
   </style>
 </head>
-<body class="mdl-color--grey-100">
+
+<!-- 🟢 FIX 5: Removed "mdl-color--grey-100" class to make background dark -->
+<body>
 
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
   <header class="mdl-layout__header">
     <div class="mdl-layout__header-row">
+
+      <!-- 🟢 FIX 6: Added the "three lines" hamburger menu button -->
+      <div class="mdl-layout__drawer-button">
+        <i class="material-icons">menu</i>
+      </div>
+
       <span class="mdl-layout-title">Robot Camera Feed</span>
       <div class="mdl-layout-spacer"></div>
       <div id="connection-status" class="connection-status-widget">
-        <i class="material-icons" style="color: red;">power_off</i>
+        <!-- index.js will update this icon -->
       </div>
     </div>
   </header>
   
-  <!-- 🟢 NEW: Added the full sidebar drawer from index.html -->
+  <!-- 🟢 FIX 7: Added the full, consistent sidebar -->
   <div class="mdl-layout__drawer">
     <nav id="topics-nav" class="mdl-navigation">
         
@@ -108,34 +158,11 @@
       </div>
       <!-- End: Custom Camera Widget -->
 
-      <!-- START: Odom Widget -->
-      <div class="ros-widget-card mdl-card mdl-cell mdl-cell--12-col mdl-shadow--2dp">
-          <div class="mdl-card__title">
-              <h5 class="mdl-card__title-text">/odom</h5>
-          </div>
-          <div class="ros-widget" 
-               data-widget="odom" 
-               data-topic="/odom"
-               data-topic-type="nav_msgs/Odometry">
-              
-              <div class="ros-widget-content">
-                  <div style="width: 100%; height: 350px; position: relative;"></div>
-              </div>
-          </div>
-      </div>
-      <!-- END: Odom Widget -->
-
-      <!-- 🟢 START: Added the Battery Widget Below -->
-      <!-- I made this mdl-cell--6-col so it takes half the width. You can change to 12 if you want it full width -->
+      <!-- Start: Battery Widget -->
       <div class="ros-widget-card mdl-card mdl-cell mdl-cell--6-col mdl-shadow--2dp">
           <div class="mdl-card__title">
               <h5 class="mdl-card__title-text">/battery_voltages</h5>
           </div>
-          <!-- 
-            data-widget="number" is used to display simple text/numeric values.
-            I've assumed the topic type is std_msgs/Float32, which is common.
-            If it's a different type (like std_msgs/String), the "number" widget can still display it.
-          -->
           <div class="ros-widget" 
                data-widget="number" 
                data-topic="/battery_voltages"
@@ -146,20 +173,13 @@
               </div>
           </div>
       </div>
-      <!-- 🟢 END: Battery Widget -->
+      <!-- End: Battery Widget -->
 
     </div>
   </main>
 </div>
 
-<!-- Load all the necessary ROSBoard JavaScript files -->
-<script src="js/material.min.js"></script>
-<script src="js/msg.js"></script>
-<script src="js/rosboard.js"></script>
-<script src="js/widgets.js"></script>
-<script src="js/main.js"></script>
-
-<!-- 🟢 NEW: Script to fetch session and build sidebar -->
+<!-- 🟢 FIX 8: Added the dynamic sidebar script -->
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const userLinksContainer = document.getElementById("user-links");
@@ -170,7 +190,6 @@
         if (response.ok) {
           return response.json();
         }
-        // If not OK, we're not logged in, redirect.
         window.location.href = '/login';
       })
       .then(user => {
@@ -181,7 +200,6 @@
 
         let linksHtml = '';
 
-        // 1. Add Admin Panel link (if user is admin)
         if (user.role === 'admin') {
           linksHtml += `
             <a class="mdl-navigation__link" href="/admin" style="display: flex; align-items: center;">
@@ -190,16 +208,12 @@
             </a>
           `;
         }
-
-        // 2. Add Profile link (for everyone)
         linksHtml += `
           <a class="mdl-navigation__link" href="/profile" style="display: flex; align-items: center;">
             <i class="material-icons" style="padding-right: 16px;">person</i>
             Profile
           </a>
         `;
-        
-        // 3. Add email and logout button
         linksHtml += `
           <div class="email" title="${user.email}">${user.email}</div>
           <a class="mdl-navigation__link" href="/logout" style="display: flex; align-items: center;">
@@ -207,14 +221,10 @@
             Logout
           </a>
         `;
-
-        // Add all the new links to the sidebar
         userLinksContainer.innerHTML = linksHtml;
       })
       .catch(error => {
         console.error("Error fetching session:", error);
-        // If anything fails, send back to login
-        // window.location.href = '/login';
       });
   });
 </script>
