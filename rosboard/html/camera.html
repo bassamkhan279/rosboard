@@ -3,59 +3,24 @@
 <head>
   <meta charset="utf-8">
   <title>ROSBoard Camera</title>
-  
-  <!-- 🟢 FIX 1: Load icon font from Google's CDN -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  
-  <script type="text/javascript" src="js/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="></script>
-  <link rel="stylesheet" href="css/material.indigo-blue.min.css" />
-  <link rel="stylesheet" href="css/uPlot.min.css">
-  <link rel="stylesheet" href="css/leaflet.css">
-  <link href="css/index.css" media="all" rel="stylesheet" type="text/css">
-  
+
+  <!-- This is the main ROSBoard CSS -->
+  <link rel="stylesheet" href="css/material.blue_grey-indigo.min.css">
+  <link rel="stylesheet" href="css/rosboard.css">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <script type="text/javascript" src="js/json5.min.js"></script>
-  <script type="text/javascript" src="js/uPlot.iife.min.js"></script>
-  <script type="text/javascript" src="js/jquery.transit.min.js"></script>
-  <script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
-  <script type="text/javascript" src="js/eventemitter2.min.js"></script>
-  
-  <!-- 🟢 FIX 2: Corrected the typo 'text=' to 'type=' -->
-  <script type="text/javascript" src="js/import-helper.js"></script>
-  
-  <script type="text/javascript" src="js/material.min.js" defer></script>
-  
-  <!-- 🟢 FIX 3: Corrected the typo 'type.text.javascript' -->
-  <script type="text/javascript" src="js/leaflet.js"></script>      
-  
-  <script type="text/javascript" src="js/gl-matrix.js"></script>
-  <script type="text/javascript" src="js/litegl.min.js"></script>
-  <script type="text/javascript" src="js/index.js" defer></script>
-
-  <!-- Style for the new sidebar user area -->
   <style>
-    /* 🟢 START: --- NEW FIX for white sidebar --- */
-    .mdl-layout__drawer {
-        /* This matches the dark header color */
-        background-color: #37474F;
-        border-right: none;
-    }
-    .mdl-layout__drawer .mdl-navigation__link {
-        color: white; /* Make all links white */
-    }
-    .mdl-layout__drawer .topics-nav-title {
-        color: rgba(255, 255, 255, 0.7); /* Make titles faded white */
-    }
-    /* 🟢 END: --- NEW FIX for white sidebar --- */
-
+    /* Sidebar user info styles */
     .sidebar-user-info {
       position: absolute;
       bottom: 0;
       width: 100%;
       border-top: 1px solid rgba(255,255,255,0.1);
       padding: 16px;
-      box-sizing: border-box; /* Important */
+      box-sizing: border-box; 
     }
     .sidebar-user-info .email {
       font-size: 0.9em;
@@ -63,51 +28,96 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding-left: 16px; /* Align with links */
+      padding-left: 16px; 
       padding-bottom: 8px;
     }
+    /* Fix for sidebar text color */
+    .mdl-layout__drawer .mdl-navigation__link {
+        color: white;
+    }
 
-    /* 🟢 FIX 4: Added styles to make widgets dark */
+    /* 🟢 START: --- Battery Widget CSS --- 🟢 */
+    
+    /* This makes all widget boxes dark */
     .ros-widget-card {
-      background-color: #424242; 
+        background-color: #424242; 
     }
     .ros-widget-card .mdl-card__title-text {
-      color: #ffffff;
+        color: #ffffff; 
     }
     .ros-widget-content div, .ros-widget-content span {
-      color: #ffffff;
+        color: #ffffff;
     }
+
+    /* Styles for the new custom battery */
+    .battery-widget-content {
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    /* The battery icon outline */
+    .battery-icon {
+        width: 100px;
+        height: 50px;
+        border: 4px solid #fff;
+        border-radius: 8px;
+        position: relative;
+    }
+    .battery-icon::after {
+        content: '';
+        position: absolute;
+        right: -12px;
+        top: 12px;
+        width: 8px;
+        height: 22px;
+        background: #fff;
+        border-radius: 0 4px 4px 0;
+    }
+
+    /* The colored fill level */
+    .battery-fill {
+        height: 100%;
+        width: 100%; /* Default to full */
+        background-color: #4caf50; /* Default to green */
+        border-radius: 2px;
+        transition: width 0.5s ease, background-color 0.5s ease;
+    }
+
+    /* The percentage text */
+    .battery-text {
+        font-size: 2.5em;
+        font-weight: 300;
+        color: #fff;
+    }
+    /* 🟢 END: --- New Battery Widget CSS --- 🟢 */
+
   </style>
 </head>
-
-<!-- 🟢 FIX 5: Removed "mdl-color--grey-100" class to make background dark -->
-<body>
+<body class="mdl-color--grey-100">
 
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
   <header class="mdl-layout__header">
     <div class="mdl-layout__header-row">
-
-      <!-- 🟢 FIX 6: Added the "three lines" hamburger menu button -->
       <div class="mdl-layout__drawer-button">
         <i class="material-icons">menu</i>
       </div>
-
       <span class="mdl-layout-title">Robot Camera Feed</span>
       <div class="mdl-layout-spacer"></div>
       <div id="connection-status" class="connection-status-widget">
-        <!-- index.js will update this icon -->
+        <i class="material-icons" style="color: red;">power_off</i>
       </div>
     </div>
   </header>
   
-  <!-- 🟢 FIX 7: Added the full, consistent sidebar -->
   <div class="mdl-layout__drawer">
     <nav id="topics-nav" class="mdl-navigation">
         
         <div id="topics-nav-system-title" class="topics-nav-title">System</div>
         <div id="topics-nav-system"></div>
 
-        <!-- START: === Your Custom Links === -->
         <div id="topics-nav-ros-title" class="topics-nav-title">ROBOT 2</div>
         
         <a class="mdl-navigation__link" href="/rosboard/index.html" style="display: flex; align-items: center;">
@@ -124,23 +134,19 @@
           <i class="material-icons" style="padding-right: 16px;">explore</i>
           Odom
         </a>
-        <!-- END: === Your Custom Links === -->
-
         
         <div style="opacity:0.3;" id="topics-nav-unsupported"></div>
 
-        <!-- Placeholder for user links (Profile, Admin, etc) -->
         <div class="sidebar-user-info" id="user-links">
             <!-- Links will be inserted here by JS -->
         </div>
     </nav>
   </div>
   
-  <!-- Main content area where we put the widgets -->
   <main class="mdl-layout__content">
     <div class="mdl-grid" id="main-grid">
       
-      <!-- Start: Custom Camera Widget -->
+      <!-- Camera Widget -->
       <div class="ros-widget-card mdl-card mdl-cell mdl-cell--12-col mdl-shadow--2dp">
           <div class="mdl-card__title">
               <h5 class="mdl-card__title-text">/camera/rgb/image_color/compressed</h5>
@@ -156,35 +162,51 @@
               </div>
           </div>
       </div>
-      <!-- End: Custom Camera Widget -->
-
-      <!-- Start: Battery Widget -->
+      
+      <!-- 🟢 START: --- New Battery Widget --- 🟢 -->
+      <!-- We removed the Odom widget and the old battery widget -->
       <div class="ros-widget-card mdl-card mdl-cell mdl-cell--6-col mdl-shadow--2dp">
           <div class="mdl-card__title">
-              <h5 class="mdl-card__title-text">/battery_voltages</h5>
+              <h5 class="mdl-card__title-text">Battery Status</h5>
           </div>
-          <div class="ros-widget" 
-               data-widget="number" 
-               data-topic="/battery_voltages"
-               data-topic-type="std_msgs/Float32">
-              
-              <div class="ros-widget-content">
-                  <!-- The number widget will put the value here -->
+          <!-- 
+            This is our new custom widget. It doesn't use data-widget.
+            The JavaScript at the bottom of the page will control it.
+          -->
+          <div class="battery-widget-content">
+              <div class="battery-icon">
+                  <div id="battery-fill" class="battery-fill"></div>
               </div>
+              <div id="battery-text" class="battery-text">--%</div>
           </div>
       </div>
-      <!-- End: Battery Widget -->
+      <!-- 🟢 END: --- New Battery Widget --- 🟢 -->
 
     </div>
   </main>
 </div>
 
-<!-- 🟢 FIX 8: Added the dynamic sidebar script -->
+<!-- Load all the necessary ROSBoard JavaScript files -->
+<!-- We must load index.js so the rosboard object is created and connected -->
+<script type="text/javascript" src="js/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="></script>
+<script type="text/javascript" src="js/material.min.js" defer></script>
+<script type="text/javascript" src="js/json5.min.js"></script>
+<script type="text/javascript" src="js/uPlot.iife.min.js"></script>
+<script type="text/javascript" src="js/jquery.transit.min.js"></script>
+<script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
+<script type="text/javascript" src="js/eventemitter2.min.js"></script>
+<script type="text/javascript" src="js/import-helper.js"></script>
+<script type="text/javascript" src="js/leaflet.js"></script>
+<script type.text/javascript" src="js/gl-matrix.js"></script>
+<script type="text/javascript" src="js/litegl.min.js"></script>
+<script type="text/javascript" src="js/index.js" defer></script>
+
+
+<!-- Script for the dynamic user sidebar -->
 <script>
   document.addEventListener("DOMContentLoaded", () => {
+    // ... (This is the same sidebar script as before)
     const userLinksContainer = document.getElementById("user-links");
-
-    // Fetch the user session from the API we created
     fetch('/api/get_session')
       .then(response => {
         if (response.ok) {
@@ -197,9 +219,7 @@
           window.location.href = '/login';
           return;
         }
-
         let linksHtml = '';
-
         if (user.role === 'admin') {
           linksHtml += `
             <a class="mdl-navigation__link" href="/admin" style="display: flex; align-items: center;">
@@ -228,6 +248,53 @@
       });
   });
 </script>
+
+<!-- 🟢 START: --- New Battery Widget JavaScript --- 🟢 -->
+<script>
+    // This function runs once the main rosboard script (index.js) has loaded
+    // and connected to the websocket.
+    function onRosboardConnected() {
+        console.log("ROSBoard connected. Subscribing to battery.");
+
+        const batteryFill = document.getElementById('battery-fill');
+        const batteryText = document.getElementById('battery-text');
+
+        // Subscribe to the new topic from our Python node
+        rosboard.subscribe(
+            '/battery_percentage',  // Topic name
+            'std_msgs/Float32',     // Topic type
+            (msg) => {              // Callback function
+                let pct = msg.data;
+                pct = Math.round(pct); // Round to a whole number
+
+                // Update the text
+                batteryText.textContent = `${pct}%`;
+
+                // Update the fill width
+                batteryFill.style.width = `${pct}%`;
+
+                // Update the color based on percentage
+                if (pct <= 20) {
+                    batteryFill.style.backgroundColor = '#e53935'; // Red
+                } else if (pct <= 50) {
+                    batteryFill.style.backgroundColor = '#fdd835'; // Yellow
+                } else {
+                    batteryFill.style.backgroundColor = '#4caf50'; // Green
+                }
+            }
+        );
+    }
+
+    // We need to wait for the main 'rosboard' object to be ready.
+    // We can check for it on an interval.
+    const rosboardConnectInterval = setInterval(() => {
+        if (window.rosboard && rosboard.isConnected) {
+            clearInterval(rosboardConnectInterval); // Stop checking
+            onRosboardConnected(); // Run our function
+        }
+    }, 500); // Check every 500ms
+</script>
+<!-- 🟢 END: --- New Battery Widget JavaScript --- 🟢 -->
 
 </body>
 </html>
