@@ -6,6 +6,7 @@ import json
 import sys
 import socket
 import asyncio
+import aiohttp
 from aiohttp import web, ClientSession
 import aiohttp_session
 from aiohttp_session import SimpleCookieStorage, get_session
@@ -49,6 +50,21 @@ def _auth_headers(jwt=None):
 async def sb_auth_post(session: ClientSession, path: str, payload: dict):
     url = f"{AUTH_BASE}/{path}"
     async with session.post(url, headers=_auth_headers(), json=payload) as resp:
+        try:
+            data = await resp.json()
+        except Exception:
+            data = {"raw": await resp.text()}
+        return resp.status, data
+        
+# 🟢 NEW: Admin auth helper (uses SERVICE_ROLE_KEY)
+async def sb_admin_auth_post(session: ClientSession, path: str, payload: dict):
+    url = f"{AUTH_BASE}/{path}"
+    headers = {
+        "apikey": SUPABASE_ROLE_KEY,
+        "Authorization": f"Bearer {SUPABASE_ROLE_KEY}",
+        "Content-Type": "application/json"
+    }
+    async with session.post(url, headers=headers, json=payload) as resp:
         try:
             data = await resp.json()
         except Exception:
@@ -126,45 +142,69 @@ async def rosboard_proxy(request):
     if not path:
         path = "/"
 
-    target_url = f"http://localhost:8899{path}"
-    print(f"[Rosboard Proxy] Forwarding request to: {target_url}")
+    http_target_url = f"http://localhost:8899{path}"
 
-    try:
-        async with client_session.request(
-            request.method,
-            target_url,
-            headers=request.headers,
-            data=await request.read()
-        ) as resp:
-            if resp.status == 101:
-                print("[Rosboard Proxy] Upgrading to websocket")
-                ws_response = web.WebSocketResponse()
-                await ws_response.prepare(request)
+    is_websocket = 'upgrade' in request.headers.get('connection', '').lower() and \
+                   'websocket' in request.headers.get('upgrade', '').lower()
+
+    if is_websocket:
+        print(f"[Rosboard Proxy] WebSocket request detected for {path}")
+        ws_target_url = http_target_url.replace("http://", "ws://")
+        
+        ws_response = web.WebSocketResponse()
+        await ws_response.prepare(request)
+        
+        print(f"[Rosboard Proxy] Connecting to backend websocket: {ws_target_url}")
+        try:
+            async with client_session.ws_connect(ws_target_url) as ws_backend:
+                print("[Rosboard Proxy] ✅ WebSocket connection established.")
                 
-                async with client_session.ws_connect(target_url) as ws_backend:
-                    async def forward(ws_from, ws_to):
-                        async for msg in ws_from:
-                            if ws_to.closed:
-                                break
-                            await ws_to.send(msg.data)
-                    
-                    await asyncio.gather(
-                        forward(ws_response, ws_backend),
-                        forward(ws_backend, ws_response)
-                    )
-                return ws_response
+                async def forward(ws_from, ws_to):
+                    async for msg in ws_from:
+                        if ws_to.closed:
+                            break
+                        
+                        if msg.type == aiohttp.WSMsgType.TEXT:
+                            await ws_to.send_str(msg.data)
+                        elif msg.type == aiohttp.WSMsgType.BINARY:
+                            await ws_to.send_bytes(msg.data)
+                        elif msg.type == aiohttp.WSMsgType.CLOSED or msg.type == aiohttp.WSMsgType.ERROR:
+                            await ws_to.close(code=msg.data)
+                            break 
+                
+                await asyncio.gather(
+                    forward(ws_response, ws_backend),
+                    forward(ws_backend, ws_response)
+                )
+            print("[Rosboard Proxy] WebSocket connection closed.")
+            return ws_response
+        except Exception as e:
+            print(f"[Rosboard Proxy] ❌ WebSocket backend connection failed: {e}")
+            return ws_response
 
-            response = web.Response(
-                status=resp.status,
-                headers=resp.headers,
-                body=await resp.read()
-            )
-            response.headers.pop('Transfer-Encoding', None)
-            return response
+    else: 
+        if not path.startswith(("/js/", "/css/", "/fonts/")):
+            print(f"[Rosboard Proxy] HTTP request for: {http_target_url}")
             
-    except Exception as e:
-        print(f"[Rosboard Proxy] ❌ Error connecting to backend: {e}")
-        return web.Response(text="Rosboard backend is not reachable.", status=502)
+        try:
+            async with client_session.request(
+                request.method,
+                http_target_url,
+                headers=request.headers,
+                data=await request.read()
+            ) as resp:
+                
+                response = web.Response(
+                    status=resp.status,
+                    headers=resp.headers,
+                    body=await resp.read()
+                )
+                response.headers.pop('Transfer-Encoding', None)
+                return response
+                
+        except Exception as e:
+            print(f"[RosBsoard Proxy] ❌ HTTP backend connection failed: {e}")
+            return web.Response(text="Rosboard backend is not reachable.", status=502)
 
 # ---------- Login ----------
 async def login_page(request):
@@ -183,34 +223,30 @@ async def login_page(request):
             json=login_payload
         ) as resp:
             result = await resp.json()
-            print(f"[Supabase] Auth result: {result}")
+            
+            if resp.status != 200:
+                print(f"[Login] ❌ Auth failed: {result.get('error_description', 'Invalid credentials')}")
+                return web.Response(text="Invalid credentials. Please try again.", content_type='text/html')
 
-            if resp.status == 200 and "access_token" in result:
-                
-                print(f"[Login] Auth success. Fetching profile for {email}...")
-                params = {"email": f"eq.{email}", "select": "role,id"}
-                status, profile_data = await sb_get(request.app["http_client"], "profiles", params=params)
-                
-                role = "user" # Default role
-                user_id = None
-                if status == 200 and profile_data:
-                    role = profile_data[0].get("role", "user")
-                    user_id = profile_data[0].get("id")
-                    print(f"[Login] Profile found. Role: {role}")
-                else:
-                    print(f"[Login] ⚠️ No profile found for {email}, defaulting to 'user' role.")
-
-                session_data = await get_session(request)
-                session_data["user"] = {"email": email, "role": role, "id": user_id}
-                
-                print(f"[Login] ✅ {email} logged in successfully as {role}.")
-                raise web.HTTPFound("/redirect.html")
+            print(f"[Login] Auth success. Fetching profile for {email}...")
+            params = {"email": f"eq.{email}", "select": "role,id"}
+            status, profile_data = await sb_get(request.app["http_client"], "profiles", params=params)
+            
+            role = "user" # Default role
+            user_id = None
+            if status == 200 and profile_data:
+                role = profile_data[0].get("role", "user")
+                user_id = profile_data[0].get("id")
+                print(f"[Login] Profile found. Role: {role}")
             else:
-                print(f"[Login] ❌ Invalid credentials for {email}.")
-                return web.Response(
-                    text="Invalid credentials. Please try again.",
-                    content_type='text/html'
-                )
+                print(f"[Login] ⚠️ No profile found for {email}, defaulting to 'user' role.")
+
+            session_data = await get_session(request)
+            session_data["user"] = {"email": email, "role": role, "id": user_id}
+            
+            print(f"[Login] ✅ {email} logged in successfully as {role}.")
+            raise web.HTTPFound("/redirect.html")
+
     return web.FileResponse(login_path)
 
 # ---------- Logout ----------
@@ -321,6 +357,58 @@ async def get_users(request):
         return web.json_response(data)
     return web.json_response({"error": "Failed to fetch users"}, status=status)
 
+# 🟢 NEW: --- Admin Create User API ---
+async def admin_create_user(request):
+    """API for an admin to create a new user."""
+    await require_admin(request)
+    data = await request.json()
+    email = data.get("email")
+    password = data.get("password")
+    role = data.get("role", "user")
+
+    if not email or not password:
+        return web.json_response({"error": "Email and password are required"}, status=400)
+    
+    # --- Step 1: Create Auth user using Admin privileges ---
+    # We use sb_admin_auth_post (with SERVICE_ROLE_KEY) to create a user
+    # without sending a confirmation email.
+    print(f"[Admin] Attempting to create auth user for {email}")
+    auth_payload = {
+        "email": email, 
+        "password": password,
+        "email_confirm": True # Auto-confirm the email
+    }
+    auth_status, auth_result = await sb_admin_auth_post(
+        request.app["http_client"], "admin/users", auth_payload
+    )
+
+    if auth_status not in [200, 201]:
+        error_msg = auth_result.get('msg', 'Auth user creation failed')
+        print(f"[Admin] ❌ Auth user creation failed: {error_msg}")
+        return web.json_response({"error": f"Auth user creation failed: {error_msg}"}, status=auth_status)
+    
+    print(f"[Admin] ✅ Auth user created: {email}")
+    auth_user_id = auth_result.get('id')
+
+    if not auth_user_id:
+        print(f"[Admin] ❌ CRITICAL: Could not get ID from auth result: {auth_result}")
+        return web.json_response({"error": "Could not get user ID from auth result"}, status=500)
+
+    # --- Step 2: Create the user's profile in 'profiles' table ---
+    profile_payload = {"email": email, "role": role, "id": auth_user_id}
+    profile_status, profile_created = await sb_post(
+        request.app["http_client"], "profiles", profile_payload
+    )
+    
+    if profile_status in (200, 201):
+        print(f"[Admin] ✅ Profile created for: {email} as {role}")
+        return web.json_response(profile_created[0]) # Return the new user object
+    else:
+        print(f"[Admin] ❌ Profile creation failed: {profile_created}")
+        # TODO: Delete the auth user we just created to clean up
+        return web.json_response({"error": "Profile creation failed"}, status=500)
+# 🟢 END: --- Admin Create User API ---
+
 async def update_user_role(request):
     """API for admins to update a user's role."""
     await require_admin(request)
@@ -368,8 +456,7 @@ async def profile_page(request):
         raise web.HTTPFound("/login")
     return web.FileResponse(WEB_DIR / "profile.html")
 
-# 🟢 NEW: --- Self-Serve User API Endpoints ---
-
+# --- Self-Serve User API Endpoints ---
 async def change_own_password(request):
     """API for a logged-in user to change their OWN password."""
     session = await get_session(request)
@@ -424,9 +511,6 @@ async def delete_own_account(request):
             print(f"[Profile] ❌ Failed to delete auth user {user.get('email')}: {await resp.text()}")
             return web.json_response({"error": "Failed to delete account"}, status=resp.status)
 
-# 🟢 END: --- Self-Serve User API Endpoints ---
-
-
 # ---------- Middleware ----------
 @web.middleware
 async def require_login_middleware(request, handler):
@@ -465,7 +549,7 @@ def main():
         require_login_middleware
     ])
     app.on_startup.append(on_startup)
-    app.on_cleanup.append(on_cleanup)
+    app.on_cleanup.append(on_cleanup) 
 
     # Routes
     app.router.add_get("/", login_page)
@@ -489,10 +573,12 @@ def main():
     # API Routes
     app.router.add_get("/api/get_session", get_user_session)
     app.router.add_get("/api/users", get_users)
+    # 🟢 NEW: API Route for creating users
+    app.router.add_post("/api/users", admin_create_user) 
     app.router.add_put("/api/users/{id}/role", update_user_role)
     app.router.add_delete("/api/users/{id}", delete_user)
 
-    # 🟢 NEW: Self-serve API Routes
+    # Self-serve API Routes
     app.router.add_post("/api/user/password", change_own_password)
     app.router.add_delete("/api/user", delete_own_account)
 
