@@ -2,7 +2,10 @@
 <html>
     <head>
       <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-        <link href="css/material-icons.css" media="all" rel="stylesheet" type="text/css">
+        
+        <!-- Load icon font from Google's CDN -->
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        
         <script type="text/javascript" src="js/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="></script>
         <link rel="stylesheet" href="css/material.indigo-blue.min.css" />
         <link rel="stylesheet" href="css/uPlot.min.css">
@@ -14,16 +17,19 @@
         <script type="text/javascript" src="js/jquery.transit.min.js"></script>
         <script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
         <script type="text/javascript" src="js/eventemitter2.min.js"></script>
-        <script text="text/javascript" src="js/import-helper.js"></script>
+
+        <!-- 🟢 FIX: Corrected the typo 'text=' to 'type=' -->
+        <script type="text/javascript" src="js/import-helper.js"></script>
+        
         <script type="text/javascript" src="js/material.min.js" defer></script>
-        <script type="text/javascript" src="js/leaflet.js"></script>      
+        <script type.text.javascript" src="js/leaflet.js"></script>      
         <script type="text/javascript" src="js/gl-matrix.js"></script>
         <script type="text/javascript" src="js/litegl.min.js"></script>
         <script type="text/javascript" src="js/index.js" defer></script>
 
         <title></title>
         
-        <!-- 🟢 NEW: Style for the new sidebar user area -->
+        <!-- Style for the new sidebar user area -->
         <style>
           .sidebar-user-info {
             position: absolute;
@@ -48,8 +54,16 @@
         <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
           <header class="mdl-layout__header">
             <div class="mdl-layout__header-row">
+              
+              <!-- This is the "three lines" hamburger menu button -->
+              <div class="mdl-layout__drawer-button">
+                <i class="material-icons">menu</i>
+              </div>
+
               <!-- Title -->
               <span class="mdl-layout-title">ROSboard</span>
+              
+              <!-- Add spacer, to align navigation to the right -->
               <div class="mdl-layout-spacer"></div>
             </div>
           </header>
@@ -68,7 +82,6 @@
                   Camera
                 </a>
                 
-                <!-- 🟢 ADDED: The Odom link -->
                 <a class="mdl-navigation__link" href="/rosboard/odom.html" style="display: flex; align-items: center;">
                   <i class="material-icons" style="padding-right: 16px;">explore</i>
                   Odom
@@ -78,7 +91,7 @@
                 
                 <div style="opacity:0.3;" id="topics-nav-unsupported"></div>
 
-                <!-- 🟢 NEW: Placeholder for user links (Profile, Admin, etc) -->
+                <!-- Placeholder for user links (Profile, Admin, etc) -->
                 <div class="sidebar-user-info" id="user-links">
                     <!-- Links will be inserted here by JS -->
                 </div>
@@ -94,10 +107,10 @@
         
       <div id="demo-toast-example" class="mdl-js-snackbar mdl-snackbar">
         <div class="mdl-snackbar__text"></div>
-        <button classD="mdl-snackbar__action" type="button"></button>
+        <button class="mdl-snackbar__action" type="button"></button>
       </div>
 
-      <!-- 🟢 NEW: Script to fetch session and build sidebar -->
+      <!-- This script fetches your session and builds the sidebar links -->
       <script>
         document.addEventListener("DOMContentLoaded", () => {
           const userLinksContainer = document.getElementById("user-links");
@@ -109,7 +122,6 @@
                 return response.json();
               }
               // If not OK, we're not logged in, redirect.
-              // Use /login since we are not in the /rosboard/ path
               window.location.href = '/login';
             })
             .then(user => {
@@ -159,4 +171,3 @@
       </script>
     </body>
 </html>
-
