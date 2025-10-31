@@ -3,7 +3,7 @@
     <head>
       <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
         
-        <!-- 🟢 FIX 1: Load icon font from Google's CDN -->
+        <!-- Icon font from Google's CDN -->
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         
         <script type="text/javascript" src="js/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="></script>
@@ -17,22 +17,16 @@
         <script type="text/javascript" src="js/jquery.transit.min.js"></script>
         <script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
         <script type="text/javascript" src="js/eventemitter2.min.js"></script>
-        
-        <!-- 🟢 FIX 2: Corrected the typo 'text=' to 'type=' -->
         <script type="text/javascript" src="js/import-helper.js"></script>
-        
         <script type="text/javascript" src="js/material.min.js" defer></script>
-        
-        <!-- 🟢 FIX 3: Corrected the typo 'type.text.javascript' -->
-        <script type="text/javascript" src="js/leaflet.js"></script>      
-        
+        <script type_javascript" src="js/leaflet.js"></script>      
         <script type="text/javascript" src="js/gl-matrix.js"></script>
         <script type="text/javascript" src="js/litegl.min.js"></script>
         <script type="text/javascript" src="js/index.js" defer></script>
         
         <title>Odometry</title>
 
-        <!-- Style for the new sidebar user area -->
+        <!-- Styles for the sidebar and custom widgets -->
         <style>
           .sidebar-user-info {
             position: absolute;
@@ -40,7 +34,7 @@
             width: 100%;
             border-top: 1px solid rgba(255,255,255,0.1);
             padding: 16px;
-            box-sizing: border-box; /* Important */
+            box-sizing: border-box; 
           }
           .sidebar-user-info .email {
             font-size: 0.9em;
@@ -48,34 +42,36 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            padding-left: 16px; /* Align with links */
+            padding-left: 16px; 
             padding-bottom: 8px;
           }
 
-          /* 🟢 START: Fix for the white box */
+          /* This makes all widget boxes dark */
           .ros-widget-card {
-            /* This matches the dark background color from index.css */
             background-color: #424242; 
           }
           .ros-widget-card .mdl-card__title-text {
-            color: #ffffff; /* White title text */
+            color: #ffffff; 
           }
           .ros-widget-content div, .ros-widget-content span {
-            color: #ffffff; /* White text for "Position:", stats, etc. */
+            color: #ffffff; 
           }
-          /* 🟢 END: Fix for the white box */
+          
+          /* 🟢 NEW: Style for the 2D Map Canvas */
+          .map-widget-content canvas {
+            background-color: #616161; /* Dark gray background for the map */
+            border-radius: 4px;
+          }
 
         </style>
     </head>
     
-    <!-- 🟢 FIX 4: Removed "mdl-color--grey-100" class to make background dark -->
+    <!-- Removed "mdl-color--grey-100" to make background dark -->
     <body>
-      <!-- This is a "lite" version of index.html -->
       <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
         <header class="mdl-layout__header">
           <div class="mdl-layout__header-row">
             
-            <!-- 🟢 FIX 5: Added the "three lines" hamburger menu button -->
             <div class="mdl-layout__drawer-button">
               <i class="material-icons">menu</i>
             </div>
@@ -85,23 +81,21 @@
           </div>
         </header>
 
-        <!-- 🟢 FIX 6: Added the full, consistent sidebar -->
+        <!-- The full, consistent sidebar -->
         <div class="mdl-layout__drawer">
           <nav id="topics-nav" class="mdl-navigation">
                 
             <div id="topics-nav-system-title" class="topics-nav-title">System</div>
             <div id="topics-nav-system"></div>
 
-            <!-- START: === Your Custom Links === -->
             <div id="topics-nav-ros-title" class="topics-nav-title">ROBOT 2</div>
             
-            <!-- Added a "Home" link -->
             <a class="mdl-navigation__link" href="/rosboard/index.html" style="display: flex; align-items: center;">
               <i class="material-icons" style="padding-right: 16px;">home</i>
               Home
             </a>
 
-            <a class="mdl-navigation__link" href="/rosboard/camera.html" style:="display: flex; align-items: center;">
+            <a class="mdl-navigation__link" href="/rosboard/camera.html" style="display: flex; align-items: center;">
               <i class="material-icons" style="padding-right: 16px;">videocam</i>
               Camera
             </a>
@@ -110,12 +104,9 @@
               <i class="material-icons" style="padding-right: 16px;">explore</i>
               Odom
             </a>
-            <!-- END: === Your Custom Links === -->
 
-            
             <div style="opacity:0.3;" id="topics-nav-unsupported"></div>
 
-            <!-- Placeholder for user links (Profile, Admin, etc) -->
             <div class="sidebar-user-info" id="user-links">
                 <!-- Links will be inserted here by JS -->
             </div>
@@ -127,33 +118,29 @@
           <div class="page-content">
             <div class="grid">
 
-              <!-- 
-                This is the Odometry widget.
-                Change data-topic to your odometry topic!
-              -->
-              <div class="ros-widget-card mdl-card mdl-cell mdl-cell--6-col mdl-shadow--2dp">
+              <!-- 🟢 START: --- Replaced 'odom' widget with 'map' widget --- 🟢 -->
+              <!-- This widget shows a 2D map and listens for /odom -->
+              <div class="ros-widget-card mdl-card mdl-cell mdl-cell--8-col mdl-shadow--2dp">
                 <div class="mdl-card__title">
-                  <h5 class="mdl-card__title-text">Odometry</h5>
+                  <h5 class="mdl-card__title-text">Robot Position (from /odom)</h5>
                 </div>
                 
                 <!-- 
-                  data-widget="odom"
-                  data-topic="/odom" (CHANGE THIS if your topic is different)
-                  data-topic-type="nav_msgs/Odometry"
+                  data-widget="map"
+                  The MapViewer.js widget automatically subscribes to /odom
+                  and will display the robot's pose on the canvas.
                 -->
                 <div class="ros-widget" 
-                     data-widget="odom" 
-                     data-topic="/odom" 
-                     data-topic-type="nav_msgs/Odometry">
+                     data-widget="map"
+                     data-topic="/map" 
+                     data-topic-type="nav_msgs/OccupancyGrid">
                   
-                  <!-- This content is specific to the odom widget -->
-                  <!-- This will now be correctly filled by index.js -->
-                  <div class="ros-widget-content" style="padding: 16px;">
-                    <div>Position: <span class="odom-position"></span></div>
-                    <div>Orientation (deg): <span class="odom-orientation"></span></div>
+                  <!-- The map widget creates a canvas inside this div -->
+                  <div class="ros-widget-content map-widget-content">
                   </div>
                 </div>
               </div>
+              <!-- 🟢 END: --- Map Widget --- 🟢 -->
 
             </div>
           </div>
@@ -161,15 +148,14 @@
       </div>
       <div id="demo-toast-example" class="mdl-js-snackbar mdl-snackbar">
         <div class="mdl-snackbar__text"></div>
-        <button class="mdl-snackbar__action" type="button"></button>
+        <button class_name="mdl-snackbar__action" type="button"></button>
       </div>
 
-      <!-- 🟢 FIX 7: Added the dynamic sidebar script -->
+      <!-- This script builds the dynamic sidebar -->
       <script>
         document.addEventListener("DOMContentLoaded", () => {
           const userLinksContainer = document.getElementById("user-links");
 
-          // Fetch the user session from the API we created
           fetch('/api/get_session')
             .then(response => {
               if (response.ok) {
