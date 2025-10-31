@@ -1,67 +1,358 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Admin – User Management</title>
-  <style>
-    body {
-      display: flex;
-      font-family: Arial, sans-serif;
-      margin: 0;
-    }
-    .sidebar {
-      width: 220px;
-      background-color: #222;
-      color: white;
-      height: 100vh;
-      padding: 20px;
-    }
-    .sidebar a {
-      display: block;
-      color: white;
-      padding: 10px 0;
-      text-decoration: none;
-    }
-    .sidebar a:hover {
-      background-color: #444;
-    }
-    .content {
-      flex: 1;
-      padding: 20px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - ROSBoard</title>
+
+    <!-- 🟢 ADDED: All the same CSS from index.html for consistency -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="/rosboard/css/material.indigo-blue.min.css" />
+    <link href="/rosboard/css/index.css" media="all" rel="stylesheet" type="text/css">
+    
+    <!-- 🟢 ADDED: Styles for the sidebar and the admin panel content -->
+    <style>
+        /* Sidebar styles from index.html */
+        .sidebar-user-info {
+          position: absolute;
+          bottom: 0;
+          width: 100%;
+          border-top: 1px solid rgba(255,255,255,0.1);
+          padding: 16px;
+          box-sizing: border-box; 
+        }
+        .sidebar-user-info .email {
+          font-size: 0.9em;
+          opacity: 0.7;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          padding-left: 16px; 
+          padding-bottom: 8px;
+        }
+
+        /* Admin panel styles */
+        .admin-content {
+            padding: 24px;
+            color: #000; /* Dark text for the white content area */
+        }
+        .container {
+            background: #ffffff;
+            padding: 20px 40px;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 800px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            border-bottom: 2px solid #3f51b5; /* Match header color */
+            padding-bottom: 10px;
+            color: #000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ccc;
+            text-align: left;
+            color: #333;
+        }
+        th {
+            background-color: #3f51b5;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        input, select, button {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background: #fff;
+            margin: 5px;
+            color: #000;
+        }
+        button {
+            background-color: #3f51b5;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        button.delete {
+            background-color: #e53935;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none; 
+        }
+        .message.success {
+            background-color: #43a047;
+            color: white;
+        }
+        .message.error {
+            background-color: #e53935;
+            color: white;
+        }
+    </style>
 </head>
 <body>
-  <div class="sidebar">
-    <h3>ROSBoard</h3>
-    <a href="/rosboard">Main Board</a>
-    <a href="/admin">User Management</a>
-    <a href="/logout">Logout</a>
-  </div>
-  <div class="content">
-    <h2>User Management</h2>
-    <form method="post" action="/admin">
-      <input type="hidden" name="action" value="create">
-      <input type="email" name="email" placeholder="New user email" required>
-      <input type="password" name="password" placeholder="Password" required>
-      <select name="role">
-        <option value="user">User</option>
-        <option value="admin">Admin</option>
-      </select>
-      <button type="submit">Create User</button>
-    </form>
 
-    <h3>Existing Users</h3>
-    <ul>
-      {% for u in users %}
-        <li>{{ u.email }} ({{ u.role }})
-          <form style="display:inline;" method="post" action="/admin">
-            <input type="hidden" name="action" value="delete">
-            <input type="hidden" name="email" value="{{ u.email }}">
-            <button type="submit">Delete</button>
-          </form>
-        </li>
-      {% end %}
-    </ul>
-  </div>
+    <!-- 🟢 REPLACED: Added the standard Material Design Layout -->
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
+      <header class="mdl-layout__header">
+        <div class="mdl-layout__header-row">
+          <div class="mdl-layout__drawer-button">
+            <i class="material-icons">menu</i>
+          </div>
+          <span class="mdl-layout-title">Admin Panel</span>
+          <div class="mdl-layout-spacer"></div>
+        </div>
+      </header>
+
+      <!-- 🟢 REPLACED: Added the exact same sidebar from index.html -->
+      <div class="mdl-layout__drawer">
+        <nav id="topics-nav" class="mdl-navigation">
+            
+            <div id="topics-nav-system-title" class="topics-nav-title">System</div>
+            <div id="topics-nav-system"></div>
+
+            <div id="topics-nav-ros-title" class="topics-nav-title">ROBOT 2</div>
+            
+            <a class="mdl-navigation__link" href="/rosboard/index.html" style="display: flex; align-items: center;">
+              <i class="material-icons" style="padding-right: 16px;">home</i>
+              Home
+            </a>
+            <a class="mdl-navigation__link" href="/rosboard/camera.html" style="display: flex; align-items: center;">
+              <i class="material-icons" style="padding-right: 16px;">videocam</i>
+              Camera
+            </a>
+            <a class="mdl-navigation__link" href="/rosboard/odom.html" style="display: flex; align-items: center;">
+              <i class="material-icons" style="padding-right: 16px;">explore</i>
+              Odom
+            </a>
+            
+            <div style="opacity:0.3;" id="topics-nav-unsupported"></div>
+
+            <div class="sidebar-user-info" id="user-links">
+                <!-- Links will be inserted here by JS -->
+            </div>
+        </nav>
+      </div>
+
+      <!-- 🟢 REPLACED: This is the main content area -->
+      <main class="mdl-layout__content" style="background-color: #f5f5f5;">
+        <div class="admin-content">
+
+            <!-- Create User Form -->
+            <div class="container">
+                <h2>Create New User</h2>
+                <form id="create-user-form">
+                    <input type="email" id="new-email" name="email" placeholder="New user email" required>
+                    <input type="password" id="new-password" name="password" placeholder="Password" required>
+                    <select id="new-role" name="role">
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                    <button type="submit">Create User</button>
+                </form>
+            </div>
+
+            <!-- Existing Users Table -->
+            <div class="container">
+                <h1>Existing Users</h1>
+                <div id="message-box" class="message"></div>
+                <table id="users-table">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-tbody">
+                        <!-- 🟢 User rows will be injected here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+      </main>
+    </div>
+
+    <!-- 🟢 ADDED: All the necessary scripts -->
+    <script type="text/javascript" src="/rosboard/js/material.min.js" defer></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const tbody = document.getElementById("users-tbody");
+            const messageBox = document.getElementById("message-box");
+            const createUserForm = document.getElementById("create-user-form");
+
+            // --- Show a message ---
+            function showMessage(text, type = 'success') {
+                messageBox.textContent = text;
+                messageBox.className = `message ${type}`;
+                messageBox.style.display = 'block';
+                setTimeout(() => { messageBox.style.display = 'none'; }, 3000);
+            }
+
+            // --- 1. Fetch all users on page load ---
+            async function fetchUsers() {
+                try {
+                    const response = await fetch('/api/users');
+                    if (!response.ok) {
+                        if (response.status === 403) {
+                            document.body.innerHTML = '<h1>403 - Forbidden</h1><p>You do not have permission to view this page.</p><a href="/rosboard/index.html">Back to Dashboard</a>';
+                        }
+                        throw new Error(`Server error: ${response.statusText}`);
+                    }
+                    const users = await response.json();
+                    renderUsers(users);
+                } catch (error) {
+                    console.error("Failed to fetch users:", error);
+                    showMessage(`Error: ${error.message}`, 'error');
+                }
+            }
+
+            // --- 2. Render the user data into the table ---
+            function renderUsers(users) {
+                tbody.innerHTML = ""; // Clear existing rows
+                users.forEach(user => {
+                    appendUserToTable(user); // Add each user to the table
+                });
+            }
+            
+            // Helper function to add one user to the table
+            function appendUserToTable(user) {
+                const tr = document.createElement("tr");
+                tr.dataset.userId = user.id;
+                const tdEmail = document.createElement("td");
+                tdEmail.textContent = user.email;
+                tr.appendChild(tdEmail);
+                const tdRole = document.createElement("td");
+                const selectRole = document.createElement("select");
+                selectRole.innerHTML = `
+                    <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+                    <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                `;
+                selectRole.addEventListener('change', () => updateUserRole(user.id, selectRole.value));
+                tdRole.appendChild(selectRole);
+                tr.appendChild(tdRole);
+                const tdActions = document.createElement("td");
+                const deleteButton = document.createElement("button");
+                deleteButton.textContent = "Delete";
+                deleteButton.className = "delete";
+                deleteButton.addEventListener('click', () => deleteUser(user.id, user.email));
+                tdActions.appendChild(deleteButton);
+                tr.appendChild(tdActions);
+                tbody.appendChild(tr);
+            }
+
+            // --- 3. Function to update a user's role ---
+            async function updateUserRole(id, newRole) {
+                try {
+                    const response = await fetch(`/api/users/${id}/role`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ role: newRole })
+                    });
+                    if (response.ok) {
+                        showMessage('User role updated successfully.', 'success');
+                    } else {
+                        throw new Error('Failed to update role');
+                    }
+                } catch (error) {
+                    showMessage(`Error: ${error.message}`, 'error');
+                }
+            }
+
+            // --- 4. Function to delete a user ---
+            async function deleteUser(id, email) {
+                if (!confirm(`Are you sure you want to delete the user: ${email}? This will delete their auth account and profile. This action cannot be undone.`)) {
+                    return;
+                }
+                try {
+                    const response = await fetch(`/api/users/${id}`, {
+                        method: 'DELETE'
+                    });
+                    if (response.ok) {
+                        document.querySelector(`tr[data-user-id="${id}"]`).remove();
+                        showMessage('User deleted successfully.', 'success');
+                    } else {
+                        throw new Error('Failed to delete user');
+                    }
+                } catch (error) {
+                    showMessage(`Error: ${error.message}`, 'error');
+                }
+            }
+            
+            // --- 5. Handle Create User Form ---
+            createUserForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('new-email').value;
+                const password = document.getElementById('new-password').value;
+                const role = document.getElementById('new-role').value;
+                
+                try {
+                    const response = await fetch('/api/users', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password, role })
+                    });
+                    const newUser = await response.json();
+                    if (response.ok) {
+                        showMessage('User created successfully!', 'success');
+                        appendUserToTable(newUser); 
+                        createUserForm.reset(); 
+                    } else {
+                        throw new Error(newUser.error || 'Failed to create user');
+                    }
+                } catch (error) {
+                    showMessage(`Error: ${error.message}`, 'error');
+                }
+            });
+
+            // --- 6. Load the dynamic sidebar links ---
+            const userLinksContainer = document.getElementById("user-links");
+            fetch('/api/get_session')
+                .then(response => response.json())
+                .then(user => {
+                    if (!user || !user.email) { window.location.href = '/login'; return; }
+                    let linksHtml = '';
+                    if (user.role === 'admin') {
+                        linksHtml += `
+                          <a class="mdl-navigation__link" href="/admin" style="display: flex; align-items: center;">
+                            <i class="material-icons" style="padding-right: 16px;">admin_panel_settings</i>
+                            Admin Panel
+                          </a>`;
+                    }
+                    linksHtml += `
+                        <a class="mdl-navigation__link" href="/profile" style="display: flex; align-items: center;">
+                          <i class="material-icons" style="padding-right: 16px;">person</i>
+                          Profile
+                        </a>`;
+                    linksHtml += `
+                        <div class="email" title="${user.email}">${user.email}</div>
+                        <a class="mdl-navigation__link" href="/logout" style="display: flex; align-items: center;">
+                          <i class="material-icons" style="padding-right: 16px;">logout</i>
+                          Logout
+                        </a>`;
+                    userLinksContainer.innerHTML = linksHtml;
+                })
+                .catch(() => window.location.href = '/login');
+
+            // Initial load of user table
+            fetchUsers();
+        });
+    </script>
 </body>
 </html>
+
