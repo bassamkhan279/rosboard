@@ -5,8 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - ROSBoard</title>
 
-    <!-- 🟢 ADDED: All the same CSS from index.html for consistency -->
+    <!-- 🟢 ADDED: All the same CSS and JS from index.html for consistency -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- 
+      Note: We use /rosboard/css/... because this page is served from /admin,
+      but the CSS/JS files are proxied from the /rosboard/ path.
+    -->
     <link rel="stylesheet" href="/rosboard/css/material.indigo-blue.min.css" />
     <link href="/rosboard/css/index.css" media="all" rel="stylesheet" type="text/css">
     
@@ -40,10 +44,11 @@
             background: #ffffff;
             padding: 20px 40px;
             border-radius: 12px;
-            width: 80%;
-            max-width: 800px;
+            width: 95%; /* Make container wider */
+            max-width: 900px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
             margin-bottom: 20px;
+            box-sizing: border-box;
         }
         h1, h2 {
             border-bottom: 2px solid #3f51b5; /* Match header color */
@@ -123,7 +128,8 @@
         <nav id="topics-nav" class="mdl-navigation">
             
             <div id="topics-nav-system-title" class="topics-nav-title">System</div>
-            <div id="topics-nav-system"></div>
+            <!-- This div will be filled by index.js -->
+            <div id="topics-nav-system"></div> 
 
             <div id="topics-nav-ros-title" class="topics-nav-title">ROBOT 2</div>
             
@@ -157,7 +163,7 @@
                 <h2>Create New User</h2>
                 <form id="create-user-form">
                     <input type="email" id="new-email" name="email" placeholder="New user email" required>
-                    <input type="password" id="new-password" name="password" placeholder="Password" required>
+                    <input type="password" id="new-password" name="password" placeholder="Password (min 6 chars)" required>
                     <select id="new-role" name="role">
                         <option value="user">User</option>
                         <option value="admin">Admin</option>
@@ -189,7 +195,10 @@
     </div>
 
     <!-- 🟢 ADDED: All the necessary scripts -->
+    <!-- We need material.min.js for the layout -->
     <script type="text/javascript" src="/rosboard/js/material.min.js" defer></script>
+    
+    <!-- This is the main JS for the admin page functions -->
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const tbody = document.getElementById("users-tbody");
