@@ -525,7 +525,12 @@ async def require_login_middleware(request, handler):
     if any(path.startswith(p) for p in public_paths):
         return await handler(request)
 
+    # 🟢 FIX: This is the bug. If a logged-in user goes to "/",
+    # redirect them to the full index.html path, not just /rosboard.
     session = await get_session(request)
+    if path == "/":
+        raise web.HTTPFound("/login" if "user" not in session else "/rosboard/index.html")
+
     if "user" not in session:
         if path.startswith("/api/"): 
             return web.json_response({"error": "Not authenticated"}, status=401)
@@ -589,4 +594,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
