@@ -1,39 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Redirecting...</title>
-  <script>
-    window.onload = () => {
-      // Automatically redirect to ROSBoard backend
-      window.location.href = "http://localhost:8899";
-    };
-  </script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background-color: #111;
-      color: #fff;
-      flex-direction: column;
-      text-align: center;
-    }
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-    }
-    p {
-      font-size: 1rem;
-      color: #ccc;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Redirecting...</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #eee;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            padding: 20px;
+        }
+    </style>
+    <script>
+        // Redirect to the correct proxy path for the dashboard.
+        // This keeps the user on port 8888.
+        window.location.href = "/rosboard/index.html";
+    </script>
 </head>
 <body>
-  <h1>Redirecting to ROSBoard backend...</h1>
-  <p>If you are not redirected automatically, <a href="http://localhost:8899" style="color:#90caf9;">click here</a>.</p>
+    <div class="container">
+        <h1>Login Successful</h1>
+        <p>Redirecting you to the dashboard...</p>
+        <p>If you are not redirected, <a href="/rosboard/index.html">click here</a>.</p>
+    </div>
 </body>
 </html>
+
