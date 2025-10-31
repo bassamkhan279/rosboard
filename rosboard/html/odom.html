@@ -3,7 +3,6 @@
     <head>
       <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
         
-        <!-- Icon font from Google's CDN -->
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         
         <script type="text/javascript" src="js/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="></script>
@@ -12,21 +11,20 @@
         <link rel="stylesheet" href="css/leaflet.css">
         <link href="css/index.css" media="all" rel="stylesheet" type="text/css">
         
-        <script type="text/javascript" src="js/json5.min.js"></script>
+        <script type"text/javascript" src="js/json5.min.js"></script>
         <script type="text/javascript" src="js/uPlot.iife.min.js"></script>
         <script type="text/javascript" src="js/jquery.transit.min.js"></script>
         <script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
         <script type="text/javascript" src="js/eventemitter2.min.js"></script>
         <script type="text/javascript" src="js/import-helper.js"></script>
         <script type="text/javascript" src="js/material.min.js" defer></script>
-        <script type_javascript" src="js/leaflet.js"></script>      
+        <script type="text/javascript" src="js/leaflet.js"></script>      
         <script type="text/javascript" src="js/gl-matrix.js"></script>
         <script type="text/javascript" src="js/litegl.min.js"></script>
         <script type="text/javascript" src="js/index.js" defer></script>
         
         <title>Odometry</title>
 
-        <!-- Styles for the sidebar and custom widgets -->
         <style>
           .sidebar-user-info {
             position: absolute;
@@ -46,7 +44,6 @@
             padding-bottom: 8px;
           }
 
-          /* This makes all widget boxes dark */
           .ros-widget-card {
             background-color: #424242; 
           }
@@ -57,16 +54,13 @@
             color: #ffffff; 
           }
           
-          /* 🟢 NEW: Style for the 2D Map Canvas */
           .map-widget-content canvas {
-            background-color: #616161; /* Dark gray background for the map */
+            background-color: #616161; 
             border-radius: 4px;
           }
-
         </style>
     </head>
     
-    <!-- Removed "mdl-color--grey-100" to make background dark -->
     <body>
       <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
         <header class="mdl-layout__header">
@@ -81,7 +75,6 @@
           </div>
         </header>
 
-        <!-- The full, consistent sidebar -->
         <div class="mdl-layout__drawer">
           <nav id="topics-nav" class="mdl-navigation">
                 
@@ -113,34 +106,28 @@
           </nav>
         </div>
 
-        <!-- Main content area -->
         <main class="mdl-layout__content">
           <div class="page-content">
             <div class="grid">
 
-              <!-- 🟢 START: --- Replaced 'odom' widget with 'map' widget --- 🟢 -->
-              <!-- This widget shows a 2D map and listens for /odom -->
               <div class="ros-widget-card mdl-card mdl-cell mdl-cell--8-col mdl-shadow--2dp">
                 <div class="mdl-card__title">
-                  <h5 class="mdl-card__title-text">Robot Position (from /odom)</h5>
+                  <h5 class="mdl-card__title-text">Robot Position (from /rtabmap/odom)</h5>
                 </div>
                 
-                <!-- 
-                  data-widget="map"
-                  The MapViewer.js widget automatically subscribes to /odom
-                  and will display the robot's pose on the canvas.
-                -->
                 <div class="ros-widget" 
                      data-widget="map"
                      data-topic="/map" 
-                     data-topic-type="nav_msgs/OccupancyGrid">
+                     data-topic-type="nav_msgs/OccupancyGrid"
+                     
+                     <!-- 🟢 THIS IS THE FIX 🟢 -->
+                     data-odom-topic="/rtabmap/odom"
+                     >
                   
-                  <!-- The map widget creates a canvas inside this div -->
                   <div class="ros-widget-content map-widget-content">
                   </div>
                 </div>
               </div>
-              <!-- 🟢 END: --- Map Widget --- 🟢 -->
 
             </div>
           </div>
@@ -148,7 +135,7 @@
       </div>
       <div id="demo-toast-example" class="mdl-js-snackbar mdl-snackbar">
         <div class="mdl-snackbar__text"></div>
-        <button class_name="mdl-snackbar__action" type="button"></button>
+        <button class="mdl-snackbar__action" type="button"></button>
       </div>
 
       <!-- This script builds the dynamic sidebar -->
@@ -168,9 +155,7 @@
                 window.location.href = '/login';
                 return;
               }
-
               let linksHtml = '';
-
               if (user.role === 'admin') {
                 linksHtml += `
                   <a class="mdl-navigation__link" href="/admin" style="display: flex; align-items: center;">
