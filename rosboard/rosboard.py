@@ -60,7 +60,8 @@ class ROSBoardNode(object):
         }
 
         tornado_handlers = [
-            (r"/rosboard/v1", ROSBoardSocketHandler, {"node": self}),
+            # 🟢 FIX: Changed from "/rosboard/v1" to "/v1" to match what the proxy forwards
+            (r"/v1", ROSBoardSocketHandler, {"node": self}),
             (r"/(.*)", NoCacheStaticFileHandler, {
                 "path": tornado_settings.get("static_path"),
                 "default_filename": "index.html"
