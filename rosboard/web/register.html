@@ -1,77 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Register - ROSBoard</title>
-  <style>
-    body {
-      background: url('/static/images/background.jpg') no-repeat center center fixed;
-      background-size: cover;
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      color: #fff;
-    }
-    .register-box {
-      background: rgba(0, 0, 0, 0.75);
-      padding: 40px;
-      border-radius: 12px;
-      text-align: center;
-      width: 300px;
-    }
-    /* 🟢 ADDED 'select' TO THIS RULE */
-    input, button, select {
-      width: 90%;
-      margin: 10px 0;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
-    }
-    /* 🟢 ADDED STYLE FOR select BACKGROUND */
-    select {
-      background: #fff;
-      color: #333;
-      /* Ensures text is left-aligned */
-      text-align: left;
-      /* For older browsers */
-      text-indent: 5px;
-    }
-    button {
-      background: #43a047;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #66bb6a;
-    }
-    a {
-      color: #90caf9;
-      text-decoration: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Redirecting...</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #eee;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            padding: 20px;
+        }
+    </style>
+    <script>
+        // Redirect to the correct proxy path for the dashboard.
+        // This keeps the user on port 8888.
+        window.location.href = "/rosboard/index.html";
+    </script>
 </head>
 <body>
-  <div class="register-box">
-    <h2>Create New Account</h2>
-    <form method="POST" action="/register">
-      <input type="email" name="email" placeholder="Email" required /><br/>
-      <input type="password" name="password" placeholder="Password (min 6 chars)" required /><br/>
-      
-      <!-- 🟢 START: ADDED ROLE DROPDOWN -->
-      <select name="role" required>
-        <option value="" disabled selected>Choose a role...</option>
-        <option value="user">User</option>
-        <option value="admin">Admin</option>
-      </select><br/>
-      <!-- 🟢 END: ADDED ROLE DROPDOWN -->
-
-      <button type="submit">Register</button>
-    </form>
-    <p><a href="/login">Back to login</a></p>
-  </div>
+    <div class="container">
+        <h1>Login Successful</h1>
+        <p>Redirecting you to the dashboard...</p>
+        <p>If you are not redirected, <a href="/rosboard/index.html">click here</a>.</p>
+    </div>
 </body>
 </html>
