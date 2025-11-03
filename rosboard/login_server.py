@@ -126,7 +126,10 @@ def run_rosboard_backend():
     print("[ROSBoard] 🚀 Launching backend on port 8899...")
     
     project_root = BASE_DIR.parent 
-    cmd = ["python3", "-m", "rosboard.rosboard", "--port", "8899"]
+    
+    # ---------- THIS LINE IS NOW FIXED ----------
+    cmd = ["python3", "-m", "rosboard", "--port", "8899", "--host", "0.0.0.0"]
+    # ----------------------------------------------
     
     print(f"[ROSBoard] Running command: `{' '.join(cmd)}` in `{project_root}`")
     subprocess.Popen(cmd, cwd=project_root)
@@ -144,7 +147,7 @@ async def rosboard_proxy(request):
     http_target_url = f"http://localhost:8899{path}"
 
     is_websocket = 'upgrade' in request.headers.get('connection', '').lower() and \
-                   'websocket' in request.headers.get('upgrade', '').lower()
+                     'websocket' in request.headers.get('upgrade', '').lower()
 
     if is_websocket:
         print(f"[Rosboard Proxy] WebSocket request detected for {path}")
@@ -178,11 +181,15 @@ async def rosboard_proxy(request):
                     forward(ws_response, ws_backend),
                     forward(ws_backend, ws_response)
                 )
-            print("[Rosboard Proxy] WebSocket connection closed.")
-            return ws_response
         except Exception as e:
             print(f"[Rosboard Proxy] ❌ WebSocket backend connection failed: {e}")
-            return ws_response
+            # Note: We return the ws_response we already prepared, 
+            # which will complete the handshake and then close, 
+            # notifying the client gracefully.
+            pass
+        
+        print("[Rosboard Proxy] WebSocket connection closed.")
+        return ws_response
 
     else: 
         if not path.startswith(("/js/", "/css/", "/fonts/")):
@@ -583,4 +590,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
