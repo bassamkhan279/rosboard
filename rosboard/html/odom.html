@@ -1,189 +1,189 @@
 <!doctype html>
 <html>
-    <head>
-      <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-        
-        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-        
-        <script type="text/javascript" src="js/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="></script>
-        <link rel="stylesheet" href="css/material.indigo-blue.min.css" />
-        <link rel="stylesheet" href="css/uPlot.min.css">
-        <link rel="stylesheet" href="css/leaflet.css">
-        <link href="css/index.css" media="all" rel="stylesheet" type="text/css">
-        
-        <script type"text/javascript" src="js/json5.min.js"></script>
-        <script type="text/javascript" src="js/uPlot.iife.min.js"></script>
-        <script type="text/javascript" src="js/jquery.transit.min.js"></script>
-        <script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
-        <script type="text/javascript" src="js/eventemitter2.min.js"></script>
-        <script type="text/javascript" src="js/import-helper.js"></script>
-        <script type="text/javascript" src="js/material.min.js" defer></script>
-        <script type="text/javascript" src="js/leaflet.js"></script>      
-        <script type="text/javascript" src="js/gl-matrix.js"></script>
-        <script type="text/javascript" src="js/litegl.min.js"></script>
-        <script type="text/javascript" src="js/index.js" defer></script>
-        
-        <title>Odometry</title>
+  <head>
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script type="text/javascript" src="js/jquery-3.1.0.min.js"></script>
+    <link rel="stylesheet" href="css/material.indigo-blue.min.css" />
+    <link rel="stylesheet" href="css/uPlot.min.css">
+    <link rel="stylesheet" href="css/leaflet.css">
+    <link href="css/index.css" media="all" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="js/json5.min.js"></script>
+    <script type="text/javascript" src="js/uPlot.iife.min.js"></script>
+    <script type="text/javascript" src="js/jquery.transit.min.js"></script>
+    <script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
+    <script type="text/javascript" src="js/eventemitter2.min.js"></script>
+    <script type="text/javascript" src="js/import-helper.js"></script>
+    <script type="text/javascript" src="js/material.min.js" defer></script>
+    <script type="text/javascript" src="js/leaflet.js"></script>      
+    <script type="text/javascript" src="js/gl-matrix.js"></script>
+    <script type="text/javascript" src="js/litegl.min.js"></script>
+    <script type="text/javascript" src="js/index.js" defer></script>
+    <title>Odometry</title>
 
-        <style>
-          .sidebar-user-info {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding: 16px;
-            box-sizing: border-box; 
-          }
-          .sidebar-user-info .email {
-            font-size: 0.9em;
-            opacity: 0.7;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding-left: 16px; 
-            padding-bottom: 8px;
-          }
-
-          .ros-widget-card {
-            background-color: #424242; 
-          }
-          .ros-widget-card .mdl-card__title-text {
-            color: #ffffff; 
-          }
-          .ros-widget-content div, .ros-widget-content span {
-            color: #ffffff; 
-          }
-          
-          .map-widget-content canvas {
-            background-color: #616161; 
-            border-radius: 4px;
-          }
-        </style>
-    </head>
-    
-    <body>
-      <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-        <header class="mdl-layout__header">
-          <div class="mdl-layout__header-row">
-            
-            <div class="mdl-layout__drawer-button">
-              <i class="material-icons">menu</i>
-            </div>
-
-            <span class="mdl-layout-title">ROSboard - Odometry</span>
-            <div class="mdl-layout-spacer"></div>
+    <style>
+      .sidebar-user-info {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        padding: 16px;
+        box-sizing: border-box; 
+      }
+      .sidebar-user-info .email {
+        font-size: 0.9em;
+        opacity: 0.7;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding-left: 16px; 
+        padding-bottom: 8px;
+      }
+      .ros-widget-card {
+        background-color: #424242; 
+      }
+      .ros-widget-card .mdl-card__title-text {
+        color: #ffffff; 
+      }
+      .ros-widget-content div, .ros-widget-content span {
+        color: #ffffff; 
+      }
+      .map-widget-content canvas {
+        background-color: #616161; 
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+      <header class="mdl-layout__header">
+        <div class="mdl-layout__header-row">
+          <div class="mdl-layout__drawer-button">
+            <i class="material-icons">menu</i>
           </div>
-        </header>
-
-        <div class="mdl-layout__drawer">
-          <nav id="topics-nav" class="mdl-navigation">
-                
-            <div id="topics-nav-system-title" class="topics-nav-title">System</div>
-            <div id="topics-nav-system"></div>
-
-            <div id="topics-nav-ros-title" class="topics-nav-title">ROBOT 2</div>
-            
-            <a class="mdl-navigation__link" href="/rosboard/index.html" style="display: flex; align-items: center;">
-              <i class="material-icons" style="padding-right: 16px;">home</i>
-              Home
-            </a>
-
-            <a class="mdl-navigation__link" href="/rosboard/camera.html" style="display: flex; align-items: center;">
-              <i class="material-icons" style="padding-right: 16px;">videocam</i>
-              Camera
-            </a>
-            
-            <a class="mdl-navigation__link" href="/rosboard/odom.html" style="display: flex; align-items: center;">
-              <i class="material-icons" style="padding-right: 16px;">explore</i>
-              Odom
-            </a>
-
-            <div style="opacity:0.3;" id="topics-nav-unsupported"></div>
-
-            <div class="sidebar-user-info" id="user-links">
-                <!-- Links will be inserted here by JS -->
-            </div>
-          </nav>
+          <span class="mdl-layout-title">ROSboard - Odometry</span>
+          <div class="mdl-layout-spacer"></div>
         </div>
+      </header>
 
-        <main class="mdl-layout__content">
-          <div class="page-content">
-            <div class="grid">
+      <div class="mdl-layout__drawer">
+        <nav id="topics-nav" class="mdl-navigation">
+          <div id="topics-nav-system-title" class="topics-nav-title">System</div>
+          <div id="topics-nav-system"></div>
 
-              <div class="ros-widget-card mdl-card mdl-cell mdl-cell--8-col mdl-shadow--2dp">
-                <div class="mdl-card__title">
-                  <h5 class="mdl-card__title-text">Robot Position (from /rtabmap/odom)</h5>
-                </div>
-                
-                <div class="ros-widget" 
-                     data-widget="map"
-                     data-topic="/map" 
-                     data-topic-type="nav_msgs/OccupancyGrid"
-                     
-                     <!-- 🟢 THIS IS THE FIX 🟢 -->
-                     data-odom-topic="/rtabmap/odom"
-                     >
-                  
-                  <div class="ros-widget-content map-widget-content">
-                  </div>
-                </div>
+          <div id="topics-nav-ros-title" class="topics-nav-title">ROBOT 2</div>
+          
+          <a class="mdl-navigation__link" href="/rosboard/index.html" style="display: flex; align-items: center;">
+            <i class="material-icons" style="padding-right: 16px;">home</i> Home
+          </a>
+          <a class="mdl-navigation__link" href="/rosboard/camera.html" style="display: flex; align-items: center;">
+            <i class="material-icons" style="padding-right: 16px;">videocam</i> Camera
+          </a>
+          <a class="mdl-navigation__link" href="/rosboard/odom.html" style="display: flex; align-items: center;">
+            <i class="material-icons" style="padding-right: 16px;">explore</i> Odom
+          </a>
+
+          <div style="opacity:0.3;" id="topics-nav-unsupported"></div>
+
+          <div class="sidebar-user-info" id="user-links"></div>
+        </nav>
+      </div>
+
+      <main class="mdl-layout__content">
+        <div class="page-content">
+          <div class="grid">
+
+            <!-- 🟢 Odometry Viewer Card -->
+            <div class="ros-widget-card mdl-card mdl-cell mdl-cell--8-col mdl-shadow--2dp">
+              <div class="mdl-card__title">
+                <h5 class="mdl-card__title-text">Robot Position (from /rtabmap/odom)</h5>
               </div>
-
+              <div class="ros-widget-content map-widget-content">
+                <canvas id="odomCanvas" width="500" height="500"></canvas>
+              </div>
             </div>
+
           </div>
-        </main>
-      </div>
-      <div id="demo-toast-example" class="mdl-js-snackbar mdl-snackbar">
-        <div class="mdl-snackbar__text"></div>
-        <button class="mdl-snackbar__action" type="button"></button>
-      </div>
+        </div>
+      </main>
+    </div>
 
-      <!-- This script builds the dynamic sidebar -->
-      <script>
-        document.addEventListener("DOMContentLoaded", () => {
-          const userLinksContainer = document.getElementById("user-links");
+    <div id="demo-toast-example" class="mdl-js-snackbar mdl-snackbar">
+      <div class="mdl-snackbar__text"></div>
+      <button class="mdl-snackbar__action" type="button"></button>
+    </div>
 
-          fetch('/api/get_session')
-            .then(response => {
-              if (response.ok) {
-                return response.json();
-              }
+    <!-- Sidebar Session Loader -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const userLinksContainer = document.getElementById("user-links");
+
+        fetch('/api/get_session')
+          .then(response => {
+            if (response.ok) return response.json();
+            window.location.href = '/login';
+          })
+          .then(user => {
+            if (!user || !user.email) {
               window.location.href = '/login';
-            })
-            .then(user => {
-              if (!user || !user.email) {
-                window.location.href = '/login';
-                return;
-              }
-              let linksHtml = '';
-              if (user.role === 'admin') {
-                linksHtml += `
-                  <a class="mdl-navigation__link" href="/admin" style="display: flex; align-items: center;">
-                    <i class="material-icons" style="padding-right: 16px;">admin_panel_settings</i>
-                    Admin Panel
-                  </a>
-                `;
-              }
+              return;
+            }
+            let linksHtml = '';
+            if (user.role === 'admin') {
               linksHtml += `
-                <a class="mdl-navigation__link" href="/profile" style="display: flex; align-items: center;">
-                  <i class="material-icons" style="padding-right: 16px;">person</i>
-                  Profile
-                </a>
-              `;
-              linksHtml += `
-                <div class="email" title="${user.email}">${user.email}</div>
-                <a class="mdl-navigation__link" href="/logout" style="display: flex; align-items: center;">
-                  <i class="material-icons" style="padding-right: 16px;">logout</i>
-                  Logout
-                </a>
-              `;
-              userLinksContainer.innerHTML = linksHtml;
-            })
-            .catch(error => {
-              console.error("Error fetching session:", error);
-            });
-        });
-      </script>
-    </body>
-</html>
+                <a class="mdl-navigation__link" href="/admin" style="display: flex; align-items: center;">
+                  <i class="material-icons" style="padding-right: 16px;">admin_panel_settings</i> Admin Panel
+                </a>`;
+            }
+            linksHtml += `
+              <a class="mdl-navigation__link" href="/profile" style="display: flex; align-items: center;">
+                <i class="material-icons" style="padding-right: 16px;">person</i> Profile
+              </a>
+              <div class="email" title="${user.email}">${user.email}</div>
+              <a class="mdl-navigation__link" href="/logout" style="display: flex; align-items: center;">
+                <i class="material-icons" style="padding-right: 16px;">logout</i> Logout
+              </a>`;
+            userLinksContainer.innerHTML = linksHtml;
+          })
+          .catch(err => console.error("Error fetching session:", err));
+      });
+    </script>
 
+    <!-- 🟢 Odometry Viewer Script -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const socket = new WebSocket("ws://localhost:8899/v1");
+
+        const canvas = document.getElementById("odomCanvas");
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        function drawOdom(x, y) {
+          const scale = 40; // adjust as needed
+          const cx = x * scale + canvas.width / 2;
+          const cy = -y * scale + canvas.height / 2;
+          ctx.fillStyle = "lime";
+          ctx.fillRect(cx, cy, 3, 3);
+        }
+
+        socket.onopen = () => {
+          console.log("Connected to ROSBoard backend");
+          socket.send(JSON.stringify({
+            op: "subscribe",
+            topic: "/rtabmap/odom"
+          }));
+        };
+
+        socket.onmessage = (event) => {
+          const msg = JSON.parse(event.data);
+          if (msg._topic_name === "/rtabmap/odom") {
+            const pos = msg.pose.pose.position;
+            drawOdom(pos.x, pos.y);
+          }
+        };
+      });
+    </script>
+  </body>
+</html>
