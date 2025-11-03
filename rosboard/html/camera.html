@@ -3,17 +3,26 @@
 <head>
   <meta charset="utf-8">
   <title>ROSBoard Camera</title>
-  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
+  
+  <!-- Fixes the broken "three-lines" icon -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-  <!-- This is the main ROSBoard CSS -->
+  <!-- All necessary CSS -->
   <link rel="stylesheet" href="css/material.blue_grey-indigo.min.css">
   <link rel="stylesheet" href="css/rosboard.css">
+  <link rel="stylesheet" href="css/uPlot.min.css">
+  <link rel="stylesheet" href="css/leaflet.css">
+  <link href="css/index.css" media="all" rel="stylesheet" type="text/css">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
-    /* Sidebar user info styles */
+    /* Fix for the sidebar text color */
+    .mdl-layout__drawer .mdl-navigation__link {
+        color: white;
+    }
+    
+    /* Fix for the dynamic sidebar menu at the bottom */
     .sidebar-user-info {
       position: absolute;
       bottom: 0;
@@ -31,12 +40,8 @@
       padding-left: 16px; 
       padding-bottom: 8px;
     }
-    /* Fix for sidebar text color */
-    .mdl-layout__drawer .mdl-navigation__link {
-        color: white;
-    }
 
-    /* Battery Widget CSS */
+    /* Fix for the "white boxes" */
     .ros-widget-card {
         background-color: #424242; 
     }
@@ -46,6 +51,8 @@
     .ros-widget-content div, .ros-widget-content span {
         color: #ffffff;
     }
+
+    /* Custom Battery Widget CSS */
     .battery-widget-content {
         padding: 16px;
         display: flex;
@@ -84,12 +91,14 @@
     }
   </style>
 </head>
-<!-- 🟢 FIX: Removed "mdl-color--grey-100" from class to make background dark -->
+
+<!-- FIX: Removed "mdl-color--grey-100" to make the background dark -->
 <body>
 
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
   <header class="mdl-layout__header">
     <div class="mdl-layout__header-row">
+      <!-- FIX: Added the "three-lines" menu button -->
       <div class="mdl-layout__drawer-button">
         <i class="material-icons">menu</i>
       </div>
@@ -101,6 +110,7 @@
     </div>
   </header>
   
+  <!-- FIX: Added the full, consistent sidebar -->
   <div class="mdl-layout__drawer">
     <nav id="topics-nav" class="mdl-navigation">
         
@@ -152,7 +162,7 @@
           </div>
       </div>
       
-      <!-- Battery Widget -->
+      <!-- Custom Battery Widget -->
       <div class="ros-widget-card mdl-card mdl-cell mdl-cell--6-col mdl-shadow--2dp">
           <div class="mdl-card__title">
               <h5 class="mdl-card__title-text">Battery Status</h5>
@@ -164,6 +174,8 @@
               <div id="battery-text" class="battery-text">--%</div>
           </div>
       </div>
+      
+      <!-- NOTE: The odom widget is NOT here, just as you requested -->
 
     </div>
   </main>
@@ -171,7 +183,7 @@
 
 <!-- 
   START: --- SCRIPT TYPOS FIXED ---
-  These lines are now all correct.
+  This section is now correct and will load all necessary JavaScript.
 -->
 <script type="text/javascript" src="js/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="></script>
 <script type="text/javascript" src="js/material.min.js" defer></script>
@@ -191,7 +203,6 @@
 <!-- Script for the dynamic user sidebar -->
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    // ... (This is the same sidebar script as before)
     const userLinksContainer = document.getElementById("user-links");
     fetch('/api/get_session')
       .then(response => {
@@ -237,45 +248,35 @@
 
 <!-- Battery Widget JavaScript -->
 <script>
-    function onRosboardConnected() {
-        console.log("ROSBoard connected. Subscribing to battery.");
+function connectToRosboard() {
+  // Prevent multiple connections
+  if (window.rosboard && rosboard.isConnected) {
+    console.log("ROSBoard already connected.");
+    onRosboardConnected();
+    return;
+  }
 
-        const batteryFill = document.getElementById('battery-fill');
-        const batteryText = document.getElementById('battery-text');
+  console.log("Connecting ROSBoard frontend to backend on port 8899...");
+  window.rosboard = new Rosboard();
 
-        // Subscribe to the new topic from our Python node
-        rosboard.subscribe(
-            '/battery_percentage',  // Topic name
-            'std_msgs/Float32',     // Topic type
-            (msg) => {              // Callback function
-                let pct = msg.data;
-                pct = Math.round(pct); // Round to a whole number
+  // 🧠 Dynamic connection — works locally or over LAN
+  const backendURL = `ws://${window.location.hostname}:8899`;
+  rosboard.connect(backendURL);
 
-                // Update the text
-                batteryText.textContent = `${pct}%`;
-
-                // Update the fill width
-                batteryFill.style.width = `${pct}%`;
-
-                // Update the color based on percentage
-                if (pct <= 20) {
-                    batteryFill.style.backgroundColor = '#e53935'; // Red
-                } else if (pct <= 50) {
-                    batteryFill.style.backgroundColor = '#fdd835'; // Yellow
-                } else {
-                    batteryFill.style.backgroundColor = '#4caf50'; // Green
-                }
-            }
-        );
+  // Wait until the connection is established
+  const checkConnection = setInterval(() => {
+    if (window.rosboard && rosboard.isConnected) {
+      clearInterval(checkConnection);
+      console.log("✅ ROSBoard connected to backend!");
+      onRosboardConnected();
     }
+  }, 500);
+}
 
-    const rosboardConnectInterval = setInterval(() => {
-        if (window.rosboard && rosboard.isConnected) {
-            clearInterval(rosboardConnectInterval); // Stop checking
-            onRosboardConnected(); // Run our function
-        }
-    }, 500); // Check every 500ms
+// Run on page load
+window.addEventListener("load", connectToRosboard);
 </script>
+
 
 </body>
 </html>
