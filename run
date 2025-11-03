@@ -1,26 +1,5 @@
 #!/usr/bin/env python3
-import threading
-import subprocess
-import pathlib
 import rosboard.login_server
 
-print("[ROSBoard] 🚀 Starting combined backend + login server...")
-
-# Set base directory to current folder
-BASE_DIR = pathlib.Path(__file__).parent
-
-def start_backend():
-    print("[ROSBoard] 🔧 Launching backend on port 8899...")
-    # Run backend module rosboard.main
-    subprocess.Popen(["python3", "-m", "rosboard.main", "--port", "8899"], cwd=BASE_DIR)
-
-# Start backend in background thread
-backend_thread = threading.Thread(target=start_backend, daemon=True)
-backend_thread.start()
-
-# Start login server (main thread)
+print("Starting ROSBoard with login page...")
 rosboard.login_server.main()
-
-print("[ROSBoard] ✅ All services running. Access:")
-print("   Login:   http://localhost:8888")
-print("   Backend: http://localhost:8899")
