@@ -261,8 +261,10 @@ function connectToRosboard() {
   window.rosboard = new Rosboard();
 
   // 🧠 Dynamic connection — works locally or over LAN
-  const backendURL = `ws://${window.location.hostname}:8899`;
+  // 🧠 Fixed IP connection — ensures camera feed works across devices
+  const backendURL = "ws://192.168.0.108:8899";
   rosboard.connect(backendURL);
+
 
   // Wait until the connection is established
   const checkConnection = setInterval(() => {
