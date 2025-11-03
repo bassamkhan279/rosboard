@@ -1,4 +1,4 @@
-from rosboard.login_server import main
+from rosboard.main import main
 
 if __name__ == "__main__":
     main()
