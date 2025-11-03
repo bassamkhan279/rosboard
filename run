@@ -10,7 +10,8 @@ BASE_DIR = pathlib.Path(__file__).parent / "rosboard"
 
 def start_backend():
     print("[ROSBoard] 🔧 Launching backend on port 8899...")
-    subprocess.Popen(["python3", str(BASE_DIR / "rosboard.py"), "--port", "8899"])
+    # Run as a module so imports work correctly
+    subprocess.Popen(["python3", "-m", "rosboard.main", "--port", "8899"], cwd=BASE_DIR.parent)
 
 # Start backend in background thread
 backend_thread = threading.Thread(target=start_backend, daemon=True)
