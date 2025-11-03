@@ -10,18 +10,17 @@ BASE_DIR = pathlib.Path(__file__).parent / "rosboard"
 
 def start_backend():
     print("[ROSBoard] 🔧 Launching backend on port 8899...")
-    backend_path = BASE_DIR / "rosboard.py"
-    if not backend_path.exists():
-        print(f"[ERROR] Backend file not found at: {backend_path}")
+    backend_file = BASE_DIR / "main.py"
+    if not backend_file.exists():
+        print(f"[ERROR] Backend file not found at: {backend_file}")
         return
-    # ✅ Run backend directly, not as a module
-    subprocess.Popen(["python3", str(backend_path), "--port", "8899"])
+    subprocess.Popen(["python3", str(backend_file), "--port", "8899"])
 
-# Start backend in a background thread
+# Start backend in background thread
 backend_thread = threading.Thread(target=start_backend, daemon=True)
 backend_thread.start()
 
-# Start login server in the main thread
+# Start login server (main thread)
 rosboard.login_server.main()
 
 print("[ROSBoard] ✅ All services running. Access:")
