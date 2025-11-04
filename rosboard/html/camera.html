@@ -17,12 +17,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
-    /* Fix for the sidebar text color */
     .mdl-layout__drawer .mdl-navigation__link {
         color: white;
     }
-    
-    /* Fix for the dynamic sidebar menu at the bottom */
+
     .sidebar-user-info {
       position: absolute;
       bottom: 0;
@@ -41,7 +39,6 @@
       padding-bottom: 8px;
     }
 
-    /* Fix for the "white boxes" */
     .ros-widget-card {
         background-color: #424242; 
     }
@@ -93,13 +90,10 @@
   <script src="js/rosboard.js"></script>
 </head>
 
-<!-- FIX: Removed "mdl-color--grey-100" to make the background dark -->
 <body>
-
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
   <header class="mdl-layout__header">
     <div class="mdl-layout__header-row">
-      <!-- FIX: Added the "three-lines" menu button -->
       <div class="mdl-layout__drawer-button">
         <i class="material-icons">menu</i>
       </div>
@@ -111,7 +105,6 @@
     </div>
   </header>
   
-  <!-- FIX: Added the full, consistent sidebar -->
   <div class="mdl-layout__drawer">
     <nav id="topics-nav" class="mdl-navigation">
         
@@ -158,7 +151,7 @@
                data-topic-type="sensor_msgs/CompressedImage">
               
               <div class="ros-widget-content">
-                  <img style="width: 100%; height: auto;" src="" />
+                  <img id="camera-image" style="width: 100%; height: auto;" src="" />
               </div>
           </div>
       </div>
@@ -175,18 +168,12 @@
               <div id="battery-text" class="battery-text">--%</div>
           </div>
       </div>
-      
-      <!-- NOTE: The odom widget is NOT here, just as you requested -->
 
     </div>
   </main>
 </div>
 
-<!-- 
-  START: --- SCRIPT TYPOS FIXED ---
-  This section is now correct and will load all necessary JavaScript.
--->
-<script type="text/javascript" src="js/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="></script>
+<script type="text/javascript" src="js/jquery-3.1.0.min.js"></script>
 <script type="text/javascript" src="js/material.min.js" defer></script>
 <script type="text/javascript" src="js/json5.min.js"></script>
 <script type="text/javascript" src="js/uPlot.iife.min.js"></script>
@@ -198,72 +185,42 @@
 <script type="text/javascript" src="js/gl-matrix.js"></script>
 <script type="text/javascript" src="js/litegl.min.js"></script>
 <script type="text/javascript" src="js/index.js" defer></script>
-<!-- END: --- SCRIPT TYPOS FIXED --- -->
 
-
-<!-- Script for the dynamic user sidebar -->
+<!-- Dynamic user sidebar -->
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const userLinksContainer = document.getElementById("user-links");
-    fetch('/api/get_session')
-      .then(response => {
-        if (response.ok) {
-          return response.json();
-        }
-        window.location.href = '/login';
-      })
-      .then(user => {
-        if (!user || !user.email) {
-          window.location.href = '/login';
-          return;
-        }
-        let linksHtml = '';
-        if (user.role === 'admin') {
-          linksHtml += `
-            <a class="mdl-navigation__link" href="/admin" style="display: flex; align-items: center;">
-              <i class="material-icons" style="padding-right: 16px;">admin_panel_settings</i>
-              Admin Panel
-            </a>
-          `;
-        }
-        linksHtml += `
-          <a class="mdl-navigation__link" href="/profile" style="display: flex; align-items: center;">
-            <i class="material-icons" style="padding-right: 16px;">person</i>
-            Profile
-          </a>
-        `;
-        linksHtml += `
-          <div class="email" title="${user.email}">${user.email}</div>
-          <a class="mdl-navigation__link" href="/logout" style="display: flex; align-items: center;">
-            <i class="material-icons" style="padding-right: 16px;">logout</i>
-            Logout
-          </a>
-        `;
-        userLinksContainer.innerHTML = linksHtml;
-      })
-      .catch(error => {
-        console.error("Error fetching session:", error);
-      });
-  });
+document.addEventListener("DOMContentLoaded", () => {
+  const userLinksContainer = document.getElementById("user-links");
+  fetch('/api/get_session')
+    .then(response => response.ok ? response.json() : window.location.href = '/login')
+    .then(user => {
+      if (!user || !user.email) { window.location.href = '/login'; return; }
+      let linksHtml = '';
+      if (user.role === 'admin') {
+        linksHtml += `<a class="mdl-navigation__link" href="/admin" style="display: flex; align-items: center;">
+          <i class="material-icons" style="padding-right: 16px;">admin_panel_settings</i>Admin Panel
+        </a>`;
+      }
+      linksHtml += `<a class="mdl-navigation__link" href="/profile" style="display: flex; align-items: center;">
+          <i class="material-icons" style="padding-right: 16px;">person</i>Profile
+        </a>`;
+      linksHtml += `<div class="email" title="${user.email}">${user.email}</div>
+        <a class="mdl-navigation__link" href="/logout" style="display: flex; align-items: center;">
+          <i class="material-icons" style="padding-right: 16px;">logout</i>Logout
+        </a>`;
+      userLinksContainer.innerHTML = linksHtml;
+    })
+    .catch(error => console.error("Error fetching session:", error));
+});
 </script>
 
-<!-- Battery Widget JavaScript -->
+<!-- ROSBoard WebSocket connection (Camera + Battery) -->
 <script>
 function connectToRosboard() {
-  // Avoid reconnecting
-  if (window.rosboard && rosboard.isConnected) {
-    console.log("ROSBoard already connected.");
-    onRosboardConnected();
-    return;
-  }
-
-  console.log("🔌 Connecting ROSBoard frontend to backend...");
-
   const host = window.location.hostname || "localhost";
-  const backendURL = `ws://${host}:8899/ws`;  // ✅ Note the "/ws" path
-  console.log(`Attempting to connect to: ${backendURL}`);
+  const port = 8899;
+  const backendURL = `ws://${host}:${port}/ws`;
+  console.log(`[Rosboard] Connecting to ${backendURL}`);
 
-  // Create a new WebSocket connection
   window.rosboardSocket = new WebSocket(backendURL);
 
   window.rosboardSocket.onopen = () => {
@@ -273,25 +230,45 @@ function connectToRosboard() {
   };
 
   window.rosboardSocket.onmessage = (event) => {
-    console.log("📡 Message received:", event.data);
+    const data = JSON.parse(event.data);
+
+    // Camera feed update
+    if (data.topic === "/camera/rgb/image_color/compressed") {
+      document.getElementById("camera-image").src = `data:image/jpeg;base64,${data.msg.data}`;
+    }
+
+    // Battery widget update
+    if (data.topic === "/battery_state" && data.msg.percentage !== undefined) {
+      const percent = Math.round(data.msg.percentage * 100);
+      const batteryFill = document.getElementById("battery-fill");
+      const batteryText = document.getElementById("battery-text");
+
+      batteryFill.style.width = `${percent}%`;
+
+      let color = "#4caf50"; // green
+      if (percent < 50) color = "#ffeb3b"; // yellow
+      if (percent < 20) color = "#f44336"; // red
+      batteryFill.style.backgroundColor = color;
+
+      batteryText.textContent = `${percent}%`;
+    }
   };
 
   window.rosboardSocket.onclose = () => {
     console.warn("⚠️ Disconnected from ROSBoard backend");
     document.querySelector("#connection-status i").style.color = "red";
     document.querySelector("#connection-status i").textContent = "power_off";
+    setTimeout(connectToRosboard, 3000);
   };
 
   window.rosboardSocket.onerror = (error) => {
     console.error("❌ WebSocket Error:", error);
+    window.rosboardSocket.close();
   };
 }
 
-// Connect on page load
 window.addEventListener("load", connectToRosboard);
 </script>
 
-
 </body>
 </html>
-
