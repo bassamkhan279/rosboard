@@ -2,11 +2,20 @@ class Rosboard {
   constructor() {
     this.socket = null;
     this.isConnected = false;
+    this.reconnectInterval = 3000; // retry every 3 seconds
   }
 
-  connect(url) {
+  connect(host = window.location.hostname, port = 8899) {
+    const url = `ws://${host}:${port}/v1`;
     console.log(`[Rosboard] Connecting to ${url} ...`);
-    this.socket = new WebSocket(url);
+
+    try {
+      this.socket = new WebSocket(url);
+    } catch (err) {
+      console.error("[Rosboard] ❌ Failed to create WebSocket:", err);
+      this.retryConnect(host, port);
+      return;
+    }
 
     this.socket.onopen = () => {
       this.isConnected = true;
@@ -14,17 +23,28 @@ class Rosboard {
     };
 
     this.socket.onmessage = (event) => {
-      // You can handle incoming data here if needed
-      // e.g. console.log("Data:", event.data);
+      // Handle messages here
+      // Example: console.log("[Rosboard] Data:", event.data);
     };
 
     this.socket.onclose = () => {
       this.isConnected = false;
       console.warn("[Rosboard] ⚠️ Disconnected from backend");
+      this.retryConnect(host, port);
     };
 
     this.socket.onerror = (error) => {
       console.error("[Rosboard] ❌ WebSocket error:", error);
+      this.socket.close();
     };
   }
+
+  retryConnect(host, port) {
+    console.log(`[Rosboard] 🔄 Retrying connection in ${this.reconnectInterval / 1000}s...`);
+    setTimeout(() => this.connect(host, port), this.reconnectInterval);
+  }
 }
+
+// Example usage:
+const rosboard = new Rosboard();
+rosboard.connect();
