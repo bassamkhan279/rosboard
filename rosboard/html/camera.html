@@ -250,33 +250,44 @@
 <!-- Battery Widget JavaScript -->
 <script>
 function connectToRosboard() {
-  // Prevent multiple connections
+  // Avoid reconnecting
   if (window.rosboard && rosboard.isConnected) {
     console.log("ROSBoard already connected.");
     onRosboardConnected();
     return;
   }
 
-  console.log("Connecting ROSBoard frontend to backend on port 8899...");
-  window.rosboard = new Rosboard();
+  console.log("🔌 Connecting ROSBoard frontend to backend...");
 
-  // 🧠 Dynamic connection — works locally or over LAN
-  // 🧠 Fixed IP connection — ensures camera feed works across devices
-  const backendURL = "ws://192.168.0.108:8899";
-  rosboard.connect(backendURL);
+  const host = window.location.hostname || "localhost";
+  const backendURL = `ws://${host}:8899/ws`;  // ✅ Note the "/ws" path
+  console.log(`Attempting to connect to: ${backendURL}`);
 
+  // Create a new WebSocket connection
+  window.rosboardSocket = new WebSocket(backendURL);
 
-  // Wait until the connection is established
-  const checkConnection = setInterval(() => {
-    if (window.rosboard && rosboard.isConnected) {
-      clearInterval(checkConnection);
-      console.log("✅ ROSBoard connected to backend!");
-      onRosboardConnected();
-    }
-  }, 500);
+  window.rosboardSocket.onopen = () => {
+    console.log("✅ Connected to ROSBoard backend!");
+    document.querySelector("#connection-status i").style.color = "lime";
+    document.querySelector("#connection-status i").textContent = "power";
+  };
+
+  window.rosboardSocket.onmessage = (event) => {
+    console.log("📡 Message received:", event.data);
+  };
+
+  window.rosboardSocket.onclose = () => {
+    console.warn("⚠️ Disconnected from ROSBoard backend");
+    document.querySelector("#connection-status i").style.color = "red";
+    document.querySelector("#connection-status i").textContent = "power_off";
+  };
+
+  window.rosboardSocket.onerror = (error) => {
+    console.error("❌ WebSocket Error:", error);
+  };
 }
 
-// Run on page load
+// Connect on page load
 window.addEventListener("load", connectToRosboard);
 </script>
 
