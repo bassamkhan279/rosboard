@@ -128,7 +128,9 @@ def run_rosboard_backend():
     project_root = BASE_DIR.parent 
     
     # ---------- THIS LINE IS NOW FIXED ----------
-    cmd = ["python3", "-m", "rosboard", "--port", "8899", "--host", "0.0.0.0"]
+    # We are now calling the script file "rosboard/rosboard.py" directly
+    # instead of using the failing "-m" module flag.
+    cmd = ["python3", "rosboard/rosboard.py", "--port", "8899", "--host", "0.0.0.0"]
     # ----------------------------------------------
     
     print(f"[ROSBoard] Running command: `{' '.join(cmd)}` in `{project_root}`")
@@ -212,7 +214,7 @@ async def rosboard_proxy(request):
                 return response
                 
         except Exception as e:
-            print(f"[Rosboard Proxy] ❌ HTTP backend connection failed: {e}")
+            print(f"[RosB-oard Proxy] ❌ HTTP backend connection failed: {e}")
             return web.Response(text="Rosboard backend is not reachable.", status=502)
 
 # ---------- Login ----------
