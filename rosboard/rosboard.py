@@ -29,6 +29,27 @@ from rosboard.handlers import ROSBoardSocketHandler, NoCacheStaticFileHandler
 
 
 # ==============================================================
+#  Simple WebSocket test route for camera.html testing
+# ==============================================================
+
+class WSHandler(tornado.websocket.WebSocketHandler):
+    def open(self):
+        print("[WS] ✅ WebSocket connection opened")
+        self.write_message("Connected to ROSBoard backend WebSocket!")
+
+    def on_message(self, message):
+        print(f"[WS] Message received: {message}")
+        self.write_message(f"Echo: {message}")
+
+    def on_close(self):
+        print("[WS] ⚠️ WebSocket connection closed")
+
+    def check_origin(self, origin):
+        # Allow connections from anywhere (useful for local dev)
+        return True
+
+
+# ==============================================================
 #  ROSBoardNode — main backend server
 # ==============================================================
 
@@ -60,8 +81,11 @@ class ROSBoardNode(object):
         }
 
         tornado_handlers = [
-            # 🟢 FIX: Changed from "/rosboard/v1" to "/v1" to match what the proxy forwards
+            # 🟢 WebSocket endpoint for testing
+            (r"/ws", WSHandler),
+            # 🟢 ROSBoard data socket
             (r"/v1", ROSBoardSocketHandler, {"node": self}),
+            # 🟢 Static file serving (e.g. index.html, camera.html)
             (r"/(.*)", NoCacheStaticFileHandler, {
                 "path": tornado_settings.get("static_path"),
                 "default_filename": "index.html"
@@ -305,5 +329,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-
-    
