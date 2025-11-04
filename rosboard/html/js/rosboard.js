@@ -5,8 +5,8 @@ class Rosboard {
     this.reconnectInterval = 3000; // retry every 3 seconds
   }
 
-  connect(host = window.location.hostname, port = 8899) {
-    const url = `ws://${host}:${port}/v1`;
+    connect(host = window.location.hostname, port = 8899) {
+    const url = `ws://${host}:${port}/ws`; // ✅ fixed path
     console.log(`[Rosboard] Connecting to ${url} ...`);
 
     try {
@@ -38,6 +38,8 @@ class Rosboard {
       this.socket.close();
     };
   }
+
+
 
   retryConnect(host, port) {
     console.log(`[Rosboard] 🔄 Retrying connection in ${this.reconnectInterval / 1000}s...`);
