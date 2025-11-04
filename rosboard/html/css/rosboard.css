@@ -1,0 +1,43 @@
+/* ROSBoard Dark Theme */
+body {
+  background-color: #303030;
+  color: #fff;
+  font-family: "Roboto", sans-serif;
+}
+
+.ros-widget-card {
+  background-color: #424242;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.ros-widget-card .mdl-card__title-text {
+  color: #fff;
+}
+
+.mdl-layout__header {
+  background-color: #1e1e1e;
+}
+
+.mdl-layout__drawer {
+  background-color: #212121;
+}
+
+.mdl-navigation__link {
+  color: #fff !important;
+}
+
+.mdl-navigation__link:hover {
+  background-color: #333;
+}
+
+.connection-status-widget {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #fff;
+}
+
+.connection-status-widget i {
+  vertical-align: middle;
+}
