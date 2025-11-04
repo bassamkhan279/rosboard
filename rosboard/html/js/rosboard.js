@@ -6,8 +6,10 @@ class Rosboard {
   }
 
     connect(host = window.location.hostname, port = 8899) {
-    const url = `ws://${host}:${port}/ws`; // ✅ fixed path
-    console.log(`[Rosboard] Connecting to ${url} ...`);
+      const url = `ws://${host}:${port}/ws`;
+      this.socket = new WebSocket(url);
+
+
 
     try {
       this.socket = new WebSocket(url);
