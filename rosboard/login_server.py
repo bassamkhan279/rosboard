@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import threading
 import subprocess
 import pathlib
@@ -23,7 +24,7 @@ WEB_DIR = BASE_DIR / "web"
 
 # ---------- Supabase Config ----------
 SUPABASE_URL = "https://pxlbmyygaiqevnbcrnmj.supabase.co"
-SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bGJteXlnYWlxZXZuYmNybm1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5OTkyMDQsImV4cCI6MjA3NTU3NTIwNH0.ZLYal4RUIM8BISLiGQorh-hVN_VDSPqjJjB2WnN4V04"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bGJteXlnYWlxZXZuYmNybm1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5OTkyMDQsImV4cCI6MjA3NTU3NTIwNH0.ZLYal4RUIM8BISLiGQorh-hVN_VDSPqjJjB2WnN4V04"
 SUPABASE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bGJteXlnYWlxZXZuYmNybm1qIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTk5OTIwNCwiZXhwIjoyMDc1NTc1MjA0fQ.ufkzZDGdo9wUzdc2SgbYcMKAVuUxKpIkzzRjJqfLRuA"
 
 POSTGREST_BASE = f"{SUPABASE_URL}/rest/v1"
@@ -118,6 +119,9 @@ def is_port_in_use(port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(('localhost', port)) == 0
 
+#
+# ---------- THIS FUNCTION IS NOW FIXED ----------
+#
 def run_rosboard_backend():
     if is_port_in_use(8899):
         print("[ROSBoard] ⚠️ Backend already running on port 8899, skipping spawn.")
@@ -125,16 +129,30 @@ def run_rosboard_backend():
     
     print("[ROSBoard] 🚀 Launching backend on port 8899...")
     
+    # project_root is /home/bassam279/rosboard
     project_root = BASE_DIR.parent 
     
-    # ---------- THIS LINE IS NOW FIXED ----------
-    # We are now calling the script file "rosboard/rosboard.py" directly
-    # instead of using the failing "-m" module flag.
-    cmd = ["python3", "rosboard/rosboard.py", "--port", "8899", "--host", "0.0.0.0"]
-    # ----------------------------------------------
+    # This is the correct command to run the "rosboard.py" module
+    # which is inside the "rosboard" package.
+    cmd = ["python3", "-m", "rosboard.rosboard", "--port", "8899", "--host", "0.0.0.0"]
+
+    # --- THIS IS THE FIX ---
+    # Create a copy of the current environment for the subprocess
+    env = os.environ.copy()
     
-    print(f"[ROSBoard] Running command: `{' '.join(cmd)}` in `{project_root}`")
-    subprocess.Popen(cmd, cwd=project_root)
+    # Add the project root to the PYTHONPATH
+    # This ensures Python can find the "rosboard" package and its imports
+    current_pythonpath = env.get('PYTHONPATH', '')
+    env['PYTHONPATH'] = f"{project_root}:{current_pythonpath}"
+    # -----------------------
+    
+    print(f"[ROSBoard] Running command: `{' '.join(cmd)}` in `{project_root}` with modified PYTHONPATH")
+    
+    # Run the command with the new, corrected environment
+    subprocess.Popen(cmd, cwd=project_root, env=env)
+#
+# ------------------------------------------------
+#
 
 # ---------- ROSBoard Proxy ----------
 async def rosboard_proxy(request):
