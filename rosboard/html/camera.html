@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <title>ROSBoard Camera</title>
   
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
   <link rel="stylesheet" href="css/material.blue_grey-indigo.min.css">
   <link rel="stylesheet" href="css/rosboard.css">
   <link rel="stylesheet" href="css/uPlot.min.css">
   <link rel="stylesheet" href="css/leaflet.css">
   <link href="css/index.css" media="all" rel="stylesheet" type="text/css">
+  
+  <link href="css/material-icons.css" rel="stylesheet"> 
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -38,52 +38,15 @@
       padding-bottom: 8px;
     }
 
-    .ros-widget-card {
-        background-color: #424242; 
-    }
-    .ros-widget-card .mdl-card__title-text {
-        color: #ffffff; 
-    }
-    .ros-widget-content div, .ros-widget-content span {
-        color: #ffffff;
-    }
+    .ros-widget-card { background-color: #424242; }
+    .ros-widget-card .mdl-card__title-text { color: #ffffff; }
+    .ros-widget-content div, .ros-widget-content span { color: #ffffff; }
 
-    .battery-widget-content {
-        padding: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 20px;
-    }
-    .battery-icon {
-        width: 100px;
-        height: 50px;
-        border: 4px solid #fff;
-        border-radius: 8px;
-        position: relative;
-    }
-    .battery-icon::after {
-        content: '';
-        position: absolute;
-        right: -12px;
-        top: 12px;
-        width: 8px;
-        height: 22px;
-        background: #fff;
-        border-radius: 0 4px 4px 0;
-    }
-    .battery-fill {
-        height: 100%;
-        width: 100%; 
-        background-color: #4caf50; 
-        border-radius: 2px;
-        transition: width 0.5s ease, background-color 0.5s ease;
-    }
-    .battery-text {
-        font-size: 2.5em;
-        font-weight: 300;
-        color: #fff;
-    }
+    .battery-widget-content { padding: 16px; display: flex; align-items: center; justify-content: center; gap: 20px; }
+    .battery-icon { width: 100px; height: 50px; border: 4px solid #fff; border-radius: 8px; position: relative; }
+    .battery-icon::after { content: ''; position: absolute; right: -12px; top: 12px; width: 8px; height: 22px; background: #fff; border-radius: 0 4px 4px 0; }
+    .battery-fill { height: 100%; width: 100%; background-color: #4caf50; border-radius: 2px; transition: width 0.5s ease, background-color 0.5s ease; }
+    .battery-text { font-size: 2.5em; font-weight: 300; color: #fff; }
   </style>
   
   <script type="text/javascript" src="js/eventemitter2.min.js"></script>
@@ -187,21 +150,17 @@
 document.addEventListener("DOMContentLoaded", () => {
   const userLinksContainer = document.getElementById("user-links");
   
-  // FIX: Use promise chaining for cleaner login redirect
   fetch('/api/get_session')
     .then(response => {
       if (!response.ok) {
-        // If API fails (e.g., 401 Not Authenticated), redirect to login
         window.location.href = '/login'; 
         throw new Error('Not authenticated');
       }
       return response.json();
     })
     .then(user => {
-      // User is authenticated, render sidebar links
       let linksHtml = '';
       
-      // FIX: Use secure /admin route for Admin Panel
       if (user.role === 'admin') {
         linksHtml += `<a class="mdl-navigation__link" href="/admin" style="display: flex; align-items: center;">
           <i class="material-icons" style="padding-right: 16px;">admin_panel_settings</i>Admin Panel
@@ -216,13 +175,11 @@ document.addEventListener("DOMContentLoaded", () => {
         </a>`;
       userLinksContainer.innerHTML = linksHtml;
       
-      // FIX: Upgrade newly inserted MDL elements (like the admin link)
       if (typeof componentHandler !== 'undefined') {
         componentHandler.upgradeElements(userLinksContainer);
       }
     })
     .catch(error => {
-        // Only log error if it wasn't the intentional authentication error
         if (error.message !== 'Not authenticated') {
             console.error("Error fetching session:", error);
         }
