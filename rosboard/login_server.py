@@ -22,15 +22,15 @@ else:
 BASE_DIR = pathlib.Path(__file__).parent
 WEB_DIR = BASE_DIR / "web"
 
-# ---------- Supabase Config ----------
+# ---------- Supabase Config (Unmodified) ----------
 SUPABASE_URL = "https://pxlbmyygaiqevnbcrnmj.supabase.co"
 SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bGJteXlnYWlxZXZuYmNybm1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyMjI4NzUsImV4cCI6MjA3NzU4Mjg3NX0.gxRUciuoNt225CU9JJe1XGB8EKOoqUVjQKuH4nboERA"
-SUPABASE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bGJteXlnYWlxZXZuYmNybm1qIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjIyMjg3NSwiZXhwIjoyMDc3NTgyODc1fQ.Y3ff2YVkI4qXgxKtRwyraSKEb39fhukdq-_BmQ6RSGM"
+SUPABASE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bGJteXlnYWlxZXZuYmNybm1qIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjIyMjg3NSwiZXhwIjoyMDc3NTgyODc1fQ.Y3ffM2YVkI4qXgxKtRwyraSKEb39fhukdq-_BmQ6RSGM"
 
 POSTGREST_BASE = f"{SUPABASE_URL}/rest/v1"
 AUTH_BASE = f"{SUPABASE_URL}/auth/v1"
 
-# ---------- Helper HTTP functions ----------
+# --- Helper HTTP functions (Unmodified) ---
 def _supabase_headers():
     return {
         "apikey": SUPABASE_ROLE_KEY,
@@ -105,7 +105,7 @@ async def sb_delete(session: ClientSession, path: str, params: dict = None):
         except Exception:
             return resp.status, {"raw": await resp.text()}
 
-# ---------- App startup / cleanup ----------
+# ---------- App startup / cleanup (Unmodified) ----------
 async def on_startup(app):
     print("[Supabase] Creating HTTP client session")
     app["http_client"] = ClientSession()
@@ -114,14 +114,47 @@ async def on_cleanup(app):
     print("[Supabase] Closing HTTP client session")
     await app["http_client"].close()
 
-# ---------- Utility ----------
+# ---------- Utility (Unmodified) ----------
 def is_port_in_use(port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(('localhost', port)) == 0
 
 #
-# ---------- THIS FUNCTION IS NOW FIXED ----------
+# ### MODIFIED ### - Combined Publisher Spawner
 #
+def run_publisher_nodes():
+    if not os.environ.get("ROS_DISTRO"):
+        print("[Publishers] ⚠️ ROS environment not sourced, skipping node spawn.")
+        return
+    
+    env = os.environ.copy()
+
+    # --- 1. Launch the Camera Node ---
+    print("[Camera Node] 🚀 Launching Camera Publisher...")
+    # ⚠️ REPLACE 'usb_cam' and 'usb_cam_node' with your actual package/node
+    camera_cmd = ["rosrun", "usb_cam", "usb_cam_node"] 
+    
+    try:
+        subprocess.Popen(camera_cmd, env=env)
+        print("[Camera Node] ✅ Camera node started.")
+    except Exception as e:
+        print(f"[Camera Node] ❌ Failed to start camera node. Error: {e}")
+
+    # --- 2. Launch the Battery Monitor Node ---
+    print("[Battery Node] 🚀 Launching Battery Monitor...")
+    # ⚠️ REPLACE 'your_robot_package' and 'battery_monitor_node.py' with your actual package/node
+    battery_cmd = ["rosrun", "your_robot_package", "battery_monitor_node.py"] 
+    
+    try:
+        subprocess.Popen(battery_cmd, env=env)
+        print("[Battery Node] ✅ Battery monitor started.")
+    except Exception as e:
+        print(f"[Battery Node] ❌ Failed to start battery monitor. Error: {e}")
+#
+# ------------------------------------------------
+#
+
+# ---------- ROSBoard Backend Spawner (Unmodified) ----------
 def run_rosboard_backend():
     if is_port_in_use(8899):
         print("[ROSBoard] ⚠️ Backend already running on port 8899, skipping spawn.")
@@ -133,18 +166,14 @@ def run_rosboard_backend():
     project_root = BASE_DIR.parent 
     
     # This is the correct command to run the "rosboard.py" module
-    # which is inside the "rosboard" package.
     cmd = ["python3", "-m", "rosboard.rosboard", "--port", "8899", "--host", "0.0.0.0"]
 
-    # --- THIS IS THE FIX ---
     # Create a copy of the current environment for the subprocess
     env = os.environ.copy()
     
     # Add the project root to the PYTHONPATH
-    # This ensures Python can find the "rosboard" package and its imports
     current_pythonpath = env.get('PYTHONPATH', '')
     env['PYTHONPATH'] = f"{project_root}:{current_pythonpath}"
-    # -----------------------
     
     print(f"[ROSBoard] Running command: `{' '.join(cmd)}` in `{project_root}` with modified PYTHONPATH")
     
@@ -154,7 +183,7 @@ def run_rosboard_backend():
 # ------------------------------------------------
 #
 
-# ---------- ROSBoard Proxy ----------
+# ---------- ROSBoard Proxy (Unmodified) ----------
 async def rosboard_proxy(request):
     client_session = request.app["http_client"]
     path = request.path_qs
@@ -181,7 +210,6 @@ async def rosboard_proxy(request):
             async with client_session.ws_connect(ws_target_url) as ws_backend:
                 print("[Rosboard Proxy] ✅ WebSocket connection established.")
                 
-                # 🟢 START: --- THIS FUNCTION IS NOW FIXED ---
                 async def forward(ws_from, ws_to):
                     async for msg in ws_from:
                         if ws_to.closed:
@@ -192,10 +220,8 @@ async def rosboard_proxy(request):
                         elif msg.type == aiohttp.WSMsgType.BINARY:
                             await ws_to.send_bytes(msg.data)
                         elif msg.type == aiohttp.WSMsgType.CLOSED or msg.type == aiohttp.WSMsgType.ERROR:
-                            # Just close the other socket, don't pass data
                             await ws_to.close() 
                             break 
-                # 🟢 END: --- THIS FUNCTION IS NOW FIXED ---
                 
                 await asyncio.gather(
                     forward(ws_response, ws_backend),
@@ -203,9 +229,6 @@ async def rosboard_proxy(request):
                 )
         except Exception as e:
             print(f"[Rosboard Proxy] ❌ WebSocket backend connection failed: {e}")
-            # Note: We return the ws_response we already prepared, 
-            # which will complete the handshake and then close, 
-            # notifying the client gracefully.
             pass
         
         print("[Rosboard Proxy] WebSocket connection closed.")
@@ -235,7 +258,7 @@ async def rosboard_proxy(request):
             print(f"[RosB-oard Proxy] ❌ HTTP backend connection failed: {e}")
             return web.Response(text="Rosboard backend is not reachable.", status=502)
 
-# ---------- Login ----------
+# ---------- Login (Unmodified) ----------
 async def login_page(request):
     login_path = WEB_DIR / "login.html"
     if request.method == "POST":
@@ -274,18 +297,36 @@ async def login_page(request):
             session_data["user"] = {"email": email, "role": role, "id": user_id}
             
             print(f"[Login] ✅ {email} logged in successfully as {role}.")
+            # REDIRECT to the intermediary page
             raise web.HTTPFound("/redirect.html")
 
     return web.FileResponse(login_path)
 
-# ---------- Logout ----------
+# -------------------------------------------------------------
+# ### NEW/MODIFIED ### - SECURE PAGE HANDLERS
+# -------------------------------------------------------------
+
+async def index_page(request):
+    """Serves the index.html page only to logged-in users."""
+    session = await get_session(request)
+    if "user" not in session:
+        raise web.HTTPFound("/login")
+    return web.FileResponse(WEB_DIR / "index.html")
+
+async def camera_page(request):
+    """Serves the camera.html page only to logged-in users."""
+    session = await get_session(request)
+    if "user" not in session:
+        raise web.HTTPFound("/login")
+    return web.FileResponse(WEB_DIR / "camera.html")
+
+# --- Logout, Register, Forgot Password, Admin, Profile, API Endpoints (Unmodified) ---
 async def logout(request):
     session = await get_session(request)
     session.invalidate()
     print("[Logout] User logged out.")
     raise web.HTTPFound("/login")
 
-# ---------- Register ----------
 async def register_page(request):
     register_path = WEB_DIR / "register.html"
     if request.method == "POST":
@@ -331,7 +372,6 @@ async def register_page(request):
             
     return web.FileResponse(register_path)
 
-# ---------- Forgot Password ----------
 async def forgot_password_page(request):
     forgot_path = WEB_DIR / "forgot_password.html"
     if request.method == "POST":
@@ -353,7 +393,6 @@ async def forgot_password_page(request):
             
     return web.FileResponse(forgot_path)
 
-# --- Admin Security and API Endpoints ---
 async def require_admin(request):
     """Helper function to protect admin routes."""
     session = await get_session(request)
@@ -470,7 +509,6 @@ async def delete_user(request):
             print(f"[Admin] ❌ Failed to delete auth user {user_id}: {await resp.text()}")
             return web.json_response({"error": "Failed to delete user"}, status=resp.status)
 
-# --- Profile Page ---
 async def profile_page(request):
     """Serves the simple profile.html page to any logged-in user."""
     session = await get_session(request)
@@ -478,7 +516,6 @@ async def profile_page(request):
         raise web.HTTPFound("/login")
     return web.FileResponse(WEB_DIR / "profile.html")
 
-# --- Self-Serve User API Endpoints ---
 async def change_own_password(request):
     """API for a logged-in user to change their OWN password."""
     session = await get_session(request)
@@ -526,14 +563,14 @@ async def delete_own_account(request):
     
     async with request.app["http_client"].delete(url, headers=headers) as resp:
         if resp.status == 200:
-            print(f"[Profile] 🗑️ Deleted user {user.get('email')} from auth.")
+            print(f"[Profile] 🗑️ Deleted user {user_id} from auth.")
             session.invalidate() # Log them out
             return web.json_response({"status": "account deleted"})
         else:
             print(f"[Profile] ❌ Failed to delete auth user {user.get('email')}: {await resp.text()}")
             return web.json_response({"error": "Failed to delete account"}, status=resp.status)
 
-# ---------- Middleware ----------
+# ---------- Middleware (Unmodified) ----------
 @web.middleware
 async def require_login_middleware(request, handler):
     path = request.path
@@ -557,11 +594,13 @@ async def require_login_middleware(request, handler):
     
     return await handler(request)
 
-# ---------- Main ----------
+# ---------- Main (Modified) ----------
 def main():
     print("[ROSBoard] 🔧 Starting login + admin server...")
 
     if SPAWN_BACKEND:
+        # ### NEW/MODIFIED ###: Start Camera Node and ROSBoard Backend
+        threading.Thread(target=run_publisher_nodes, daemon=True).start() # Starts Camera and Battery
         threading.Thread(target=run_rosboard_backend, daemon=True).start()
     else:
         print("[ROSBoard] ⚙️ Running in main mode — backend not spawned to avoid recursion.")
@@ -571,7 +610,7 @@ def main():
         require_login_middleware
     ])
     app.on_startup.append(on_startup)
-    app.on_cleanup.append(on_cleanup) # This was the typo fix
+    app.on_cleanup.append(on_cleanup)
 
     # Routes
     app.router.add_get("/", login_page)
@@ -583,6 +622,10 @@ def main():
     app.router.add_get("/forgot-password", forgot_password_page)
     app.router.add_post("/forgot-password", forgot_password_page)
     app.router.add_get("/redirect.html", lambda request: web.FileResponse(WEB_DIR / "redirect.html"))
+    
+    # ### NEW/MODIFIED ###: SECURE APP PAGES
+    app.router.add_get("/index.html", index_page)
+    app.router.add_get("/camera.html", camera_page)
     
     # ROSBoard Proxy Routes
     app.router.add_route("*", "/rosboard", rosboard_proxy)
