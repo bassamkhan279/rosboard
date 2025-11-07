@@ -4,10 +4,8 @@
   <meta charset="utf-8">
   <title>ROSBoard Camera</title>
   
-  <!-- Fixes the broken "three-lines" icon -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-  <!-- All necessary CSS -->
   <link rel="stylesheet" href="css/material.blue_grey-indigo.min.css">
   <link rel="stylesheet" href="css/rosboard.css">
   <link rel="stylesheet" href="css/uPlot.min.css">
@@ -17,6 +15,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
+    /* === STYLING (Unmodified) === */
     .mdl-layout__drawer .mdl-navigation__link {
         color: white;
     }
@@ -49,7 +48,6 @@
         color: #ffffff;
     }
 
-    /* Custom Battery Widget CSS */
     .battery-widget-content {
         padding: 16px;
         display: flex;
@@ -87,7 +85,10 @@
         color: #fff;
     }
   </style>
-  <script src="js/rosboard.js"></script>
+  
+  <script type="text/javascript" src="js/eventemitter2.min.js"></script>
+  <script type="text/javascript" src="js/transports/WebSocketV1Transport.js"></script>
+
 </head>
 
 <body>
@@ -113,50 +114,47 @@
 
         <div id="topics-nav-ros-title" class="topics-nav-title">ROBOT 2</div>
         
-        <a class="mdl-navigation__link" href="/rosboard/index.html" style="display: flex; align-items: center;">
+        <a class="mdl-navigation__link" href="/index.html" style="display: flex; align-items: center;">
             <i class="material-icons" style="padding-right: 16px;">home</i>
-            Home
+            Dashboard
         </a>
 
-        <a class="mdl-navigation__link" href="/rosboard/camera.html" style="display: flex; align-items: center;">
+        <a class="mdl-navigation__link" href="/camera.html" style="display: flex; align-items: center;">
           <i class="material-icons" style="padding-right: 16px;">videocam</i>
           Camera
         </a>
         
-        <a class="mdl-navigation__link" href="/rosboard/odom.html" style="display: flex; align-items: center;">
+        <a class="mdl-navigation__link" href="/odom.html" style="display: flex; align-items: center;">
           <i class="material-icons" style="padding-right: 16px;">explore</i>
-          Odom
+          Scanner
         </a>
         
         <div style="opacity:0.3;" id="topics-nav-unsupported"></div>
 
         <div class="sidebar-user-info" id="user-links">
-            <!-- Links will be inserted here by JS -->
-        </div>
+            </div>
     </nav>
   </div>
   
   <main class="mdl-layout__content">
     <div class="mdl-grid" id="main-grid">
       
-      <!-- Camera Widget -->
       <div class="ros-widget-card mdl-card mdl-cell mdl-cell--12-col mdl-shadow--2dp">
           <div class="mdl-card__title">
               <h5 class="mdl-card__title-text">/camera/rgb/image_color/compressed</h5>
           </div>
           
           <div class="ros-widget" 
-               data-widget="camera" 
-               data-topic="/camera/rgb/image_color/compressed"
-               data-topic-type="sensor_msgs/CompressedImage">
+              data-widget="camera" 
+              data-topic="/camera/rgb/image_color/compressed"
+              data-topic-type="sensor_msgs/CompressedImage">
               
-              <div class="ros-widget-content">
-                  <img id="camera-image" style="width: 100%; height: auto;" src="" />
-              </div>
+            <div class="ros-widget-content">
+                <img id="camera-image" style="width: 100%; height: auto;" src="" alt="ROS Camera Feed" />
+            </div>
           </div>
       </div>
       
-      <!-- Custom Battery Widget -->
       <div class="ros-widget-card mdl-card mdl-cell mdl-cell--6-col mdl-shadow--2dp">
           <div class="mdl-card__title">
               <h5 class="mdl-card__title-text">Battery Status</h5>
@@ -179,22 +177,31 @@
 <script type="text/javascript" src="js/uPlot.iife.min.js"></script>
 <script type="text/javascript" src="js/jquery.transit.min.js"></script>
 <script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
-<script type="text/javascript" src="js/eventemitter2.min.js"></script>
 <script type="text/javascript" src="js/import-helper.js"></script>
 <script type="text/javascript" src="js/leaflet.js"></script>
 <script type="text/javascript" src="js/gl-matrix.js"></script>
 <script type="text/javascript" src="js/litegl.min.js"></script>
-<script type="text/javascript" src="js/index.js" defer></script>
 
-<!-- Dynamic user sidebar -->
 <script>
+// --- Session Loading and Sidebar Rendering (Secured) ---
 document.addEventListener("DOMContentLoaded", () => {
   const userLinksContainer = document.getElementById("user-links");
+  
+  // FIX: Use promise chaining for cleaner login redirect
   fetch('/api/get_session')
-    .then(response => response.ok ? response.json() : window.location.href = '/login')
+    .then(response => {
+      if (!response.ok) {
+        // If API fails (e.g., 401 Not Authenticated), redirect to login
+        window.location.href = '/login'; 
+        throw new Error('Not authenticated');
+      }
+      return response.json();
+    })
     .then(user => {
-      if (!user || !user.email) { window.location.href = '/login'; return; }
+      // User is authenticated, render sidebar links
       let linksHtml = '';
+      
+      // FIX: Use secure /admin route for Admin Panel
       if (user.role === 'admin') {
         linksHtml += `<a class="mdl-navigation__link" href="/admin" style="display: flex; align-items: center;">
           <i class="material-icons" style="padding-right: 16px;">admin_panel_settings</i>Admin Panel
@@ -208,66 +215,123 @@ document.addEventListener("DOMContentLoaded", () => {
           <i class="material-icons" style="padding-right: 16px;">logout</i>Logout
         </a>`;
       userLinksContainer.innerHTML = linksHtml;
+      
+      // FIX: Upgrade newly inserted MDL elements (like the admin link)
+      if (typeof componentHandler !== 'undefined') {
+        componentHandler.upgradeElements(userLinksContainer);
+      }
     })
-    .catch(error => console.error("Error fetching session:", error));
+    .catch(error => {
+        // Only log error if it wasn't the intentional authentication error
+        if (error.message !== 'Not authenticated') {
+            console.error("Error fetching session:", error);
+        }
+    });
 });
 </script>
 
-<!-- ROSBoard WebSocket connection (Camera + Battery) -->
 <script>
-function connectToRosboard() {
-  const host = window.location.hostname || "localhost";
-  const port = 8899;
-  const backendURL = `ws://${host}:${port}/ws`;
-  console.log(`[Rosboard] Connecting to ${backendURL}`);
+  // --- ROS Data Connection and Handlers ---
+  let transport; // Make transport global so callbacks can access it
+  let transportOptions; // Make options global for reconnection
 
-  window.rosboardSocket = new WebSocket(backendURL);
-
-  window.rosboardSocket.onopen = () => {
+  // Define callbacks in the global scope
+  function onOpen() {
     console.log("✅ Connected to ROSBoard backend!");
     document.querySelector("#connection-status i").style.color = "lime";
     document.querySelector("#connection-status i").textContent = "power";
-  };
+    
+    // Subscribe to camera (Automatic/Explicit Subscription)
+    transport.subscribe({
+      topicName: "/camera/rgb/image_color/compressed"
+    });
+    console.log("📷 Subscribed to camera topic");
 
-  window.rosboardSocket.onmessage = (event) => {
-    const data = JSON.parse(event.data);
+    // Subscribe to battery (Automatic/Explicit Subscription)
+    transport.subscribe({
+      topicName: "/battery_percentage"
+    });
+    console.log("🔋 Subscribed to battery topic: /battery_percentage");
+  }
 
-    // Camera feed update
-    if (data.topic === "/camera/rgb/image_color/compressed") {
-      document.getElementById("camera-image").src = `data:image/jpeg;base64,${data.msg.data}`;
-    }
-
-    // Battery widget update
-    if (data.topic === "/battery_state" && data.msg.percentage !== undefined) {
-      const percent = Math.round(data.msg.percentage * 100);
-      const batteryFill = document.getElementById("battery-fill");
-      const batteryText = document.getElementById("battery-text");
-
-      batteryFill.style.width = `${percent}%`;
-
-      let color = "#4caf50"; // green
-      if (percent < 50) color = "#ffeb3b"; // yellow
-      if (percent < 20) color = "#f44336"; // red
-      batteryFill.style.backgroundColor = color;
-
-      batteryText.textContent = `${percent}%`;
-    }
-  };
-
-  window.rosboardSocket.onclose = () => {
+  function onClose() {
     console.warn("⚠️ Disconnected from ROSBoard backend");
     document.querySelector("#connection-status i").style.color = "red";
     document.querySelector("#connection-status i").textContent = "power_off";
-    setTimeout(connectToRosboard, 3000);
-  };
+    
+    // Automatically try to reconnect
+    setTimeout(() => {
+        transport = new WebSocketV1Transport(transportOptions);
+        transport.connect();
+    }, 3000);
+  }
 
-  window.rosboardSocket.onerror = (error) => {
-    console.error("❌ WebSocket Error:", error);
-    window.rosboardSocket.close();
-  };
-}
+  function onError(error) {
+     console.error("❌ WebSocket Error:", error);
+  }
 
-window.addEventListener("load", connectToRosboard);
+  function onMsg(msg) {
+    const topicName = msg._topic_name;
+
+    // Camera feed update
+    if (topicName === "/camera/rgb/image_color/compressed") {
+      if (msg.data) {
+        document.getElementById("camera-image").src = `data:image/jpeg;base64,${msg.data}`;
+      } else {
+        console.error("❌ Camera data not found in message:", msg);
+      }
+    }
+
+    // Battery status update
+    if (topicName === "/battery_percentage") {
+      if (msg.data !== undefined) {
+        // msg.data is a Float32 (0-100), so we just round it.
+        const percent = Math.round(msg.data); 
+        const batteryFill = document.getElementById("battery-fill");
+        const batteryText = document.getElementById("battery-text");
+
+        batteryFill.style.width = `${percent}%`;
+
+        let color = "#4caf50";
+        if (percent < 50) color = "#ffeb3b";
+        if (percent < 20) color = "#f44336";
+        batteryFill.style.backgroundColor = color;
+
+        batteryText.textContent = `${percent}%`;
+      }
+    }
+  }
+
+  // These must exist globally for the transport script
+  function onTopics(topics) {}
+  function onSystem(system) {}
+
+  // This function will run once the page is loaded
+  function startRosboard() {
+    console.log("ROSBoard script starting...");
+    
+    // This is the correct path for the proxy (8888 -> 8899)
+    const backendPath = "/rosboard/v1";
+    
+    console.log(`[Rosboard] Connecting to ${backendPath}`);
+
+    // Create the transport object with its options
+    transportOptions = {
+      path: backendPath,
+      onOpen: onOpen,
+      onMsg: onMsg,
+      onClose: onClose,
+      onError: onError,
+      onTopics: onTopics,
+      onSystem: onSystem
+    };
+    
+    transport = new WebSocketV1Transport(transportOptions);
+    transport.connect();
+  }
+
+  // Start the script after the page loads
+  window.addEventListener("load", startRosboard);
 </script>
 
 </body>
