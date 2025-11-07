@@ -1,278 +1,574 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - ROSBoard</title>
-    <style>
-        body {
-            background: url('/static/images/background.jpg') no-repeat center center fixed;
-            background-size: cover;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            color: #fff;
-            padding-top: 20px;
-            box-sizing: border-box;
-        }
-        .container {
-            background: rgba(0, 0, 0, 0.85);
-            padding: 20px 40px;
-            border-radius: 12px;
-            width: 80%;
-            max-width: 800px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            margin-bottom: 20px;
-        }
-        h1, h2 {
-            border-bottom: 2px solid #43a047;
-            padding-bottom: 10px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 12px;
-            border: 1px solid #555;
-            text-align: left;
-        }
-        th {
-            background-color: #43a047;
-        }
-        tr:nth-child(even) {
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-        input, select, button {
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            background: #fff;
-            margin: 5px;
-        }
-        button {
-            background-color: #43a047;
-            color: white;
-            cursor: pointer;
-            border: none;
-        }
-        button.delete {
-            background-color: #e53935;
-        }
-        button:hover {
-            opacity: 0.8;
-        }
-        a {
-            color: #90caf9;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 20px;
-        }
-        .message {
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-            display: none; /* Hidden by default */
-        }
-        .message.success {
-            background-color: #43a047;
-            color: white;
-        }
-        .message.error {
-            background-color: #e53935;
-            color: white;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  
+  <title>Admin Panel - ROSboard</title>
+
+  <link rel="stylesheet" href="css/material.indigo-blue.min.css">
+  <link href="css/local-material-icons.css" rel="stylesheet"> 
+  <link href="css/index.css" rel="stylesheet" type="text/css"> 
+
+  <script src="js/jquery-3.1.0.min.js"></script>
+  <script src="js/material.min.js" defer></script>
+
+  <style>
+    /* === STYLING (Unmodified, as requested) === */
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      height: 100vh !important;
+      width: 100% !important;
+      overflow: hidden !important;
+    }
+    body {
+      position: relative !important;
+    }
+
+    .mdl-layout__container {
+      position: relative !important;
+      height: 100vh !important;
+      width: 100% !important;
+    }
+
+    /* Fixed Drawer - Same as index.html */
+    .mdl-layout__drawer {
+      position: fixed !important;
+      top: 0 !important;
+      height: 100vh !important;
+      width: 240px !important;
+      z-index: 15 !important;
+      box-sizing: border-box;
+      background: #404040 !important;
+    }
+    
+    /* Fixed Header - Same as index.html */
+    .mdl-layout__header {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      z-index: 20 !important;
+      height: 64px !important;
+      box-sizing: border-box;
+    }
+
+    /* Main Content - Same as index.html */
+    main.mdl-layout__content {
+      left: 240px !important;
+      top: 64px !important;
+      width: calc(100% - 240px) !important;
+      height: calc(100vh - 64px) !important;
+      position: absolute !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      z-index: 10 !important;
+      margin: 0 !important;
+      background: #202020 !important;
+    }
+
+    /* === ADMIN CONTENT STYLING (MATCHING DARK THEME) === */
+    .admin-content {
+      padding: 20px;
+      color: #f0f0f0;
+    }
+
+    .admin-section {
+      background: #303030;
+      border-radius: 5px;
+      padding: 20px;
+      margin-bottom: 20pt;
+      box-shadow: 3px 3px 3px rgba(0,0,0,0.2);
+      width: calc(100% - 40pt);
+      margin-left: 20pt;
+      margin-top: 20pt;
+    }
+
+    .admin-section h3 {
+      color: #a0a0a0;
+      font-family: 'Titillium Web', sans-serif;
+      font-size: 12pt;
+      margin-top: 0;
+      margin-bottom: 15pt;
+      padding-top: 10pt;
+      padding-left: 0;
+      padding-bottom: 10pt;
+      border-bottom: 1px solid #404040;
+    }
+
+    /* Form Styling - Dark Theme */
+    .admin-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: flex-end;
+    }
+
+    .form-group {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #c0c0c0;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      font-family: 'Titillium Web', sans-serif;
+    }
+
+    .mdl-textfield {
+      width: 100%;
+    }
+
+    .mdl-textfield__input {
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+      color: #f0f0f0;
+    }
+
+    .mdl-textfield__label {
+      color: rgba(255,255,255,0.5);
+    }
+
+    .mdl-textfield--floating-label.is-focused .mdl-textfield__label,
+    .mdl-textfield--floating-label.is-dirty .mdl-textfield__label {
+      color: #8c9eff;
+    }
+
+    .mdl-textfield__input:focus {
+      border-bottom-color: #8c9eff;
+    }
+
+    /* Button Styling */
+    .admin-actions {
+      margin-top: 16px;
+    }
+
+    /* Table Styling - Dark Theme */
+    .users-table {
+      width: 100%;
+      background: #404040;
+      border-radius: 4px;
+      overflow: hidden;
+      color: #c0c0c0;
+    }
+
+    .users-table th {
+      background: #3f51b5;
+      color: white;
+      font-weight: 500;
+      padding: 16px;
+      text-align: left;
+    }
+
+    .users-table td {
+      padding: 16px;
+      border-bottom: 1px solid #505050;
+      color: #c0c0c0;
+    }
+
+    .users-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .users-table tr:hover {
+      background: rgba(255,255,255,0.05);
+    }
+
+    /* Role Badges */
+    .role-badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    .role-admin {
+      background: #f44336;
+      color: white;
+    }
+
+    .role-user {
+      background: #4caf50;
+      color: white;
+    }
+
+    /* Delete Button */
+    .delete-btn {
+      color: #ff5252;
+      min-width: auto;
+    }
+
+    .delete-btn:hover {
+      background: rgba(255, 82, 82, 0.1);
+    }
+
+    /* === EXACT SAME NAVIGATION AS INDEX.HTML === */
+    .mdl-navigation__link {
+      color: #c0c0c0 !important;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      padding-top: 5pt !important;
+      padding-bottom: 5pt !important;
+      display: flex;
+      align-items: center;
+    }
+
+    .mdl-navigation__link:hover {
+      color: #404040 !important;
+    }
+
+    .mdl-navigation__link .material-icons {
+      margin-right: 16px;
+      font-size: 20px;
+    }
+
+    .topics-nav-title {
+      text-transform: uppercase;
+      color: #808080;
+      font-size: 10pt;
+      font-weight: 700;
+      padding-left: 10pt;
+      border-bottom: 1px dotted #505050;
+      padding-top: 10pt;
+      padding-bottom: 10pt;
+    }
+
+    .sidebar-user-info {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    .sidebar-user-info .email {
+      font-size: 0.9em;
+      opacity: 0.7;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-left: 16px;
+      padding-bottom: 8px;
+      color: #c0c0c0;
+    }
+
+    /* Drawer button styling */
+    .mdl-layout__drawer-button {
+      color: white !important;
+    }
+
+    /* Make sure the layout titles match */
+    .mdl-layout-title {
+      font-family: 'Titillium Web', sans-serif;
+      color: #c0c0c0;
+    }
+  </style>
 </head>
 <body>
+  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
+    
+    <header class="mdl-layout__header">
+      <div class="mdl-layout__header-row">
+        <div class="mdl-layout__drawer-button">
+          <i class="material-icons">menu</i>
+        </div>
+        <span class="mdl-layout-title">Admin Panel</span>
+        <div class="mdl-layout-spacer"></div>
+        <nav class="mdl-navigation">
+          <a class="mdl-navigation__link" href="/index.html" style="color: white;">
+            <i class="material-icons">home</i> Back to Main
+          </a>
+        </nav>
+      </div>
+    </header>
+    
+    <div class="mdl-layout__drawer">
+      <span class="mdl-layout-title">menu</span> 
+      <nav id="topics-nav" class="mdl-navigation">
+        <a class="mdl-navigation__link" href="/index.html">
+          <i class="material-icons">dashboard</i> Dashboard
+        </a>
+        
+        <div class="topics-nav-title">ROBOT 2</div>
+        <a class="mdl-navigation__link" href="/camera.html">
+          <i class="material-icons">videocam</i> Camera
+        </a>
+        <a class="mdl-navigation__link" href="/odom.html"> 
+          <i class="material-icons">explore</i> Scanner
+        </a>
 
-    <!-- This is your form from the screenshot, now with an ID -->
-    <div class="container">
-        <h2>Create New User</h2>
-        <form id="create-user-form">
-            <input type="email" id="new-email" name="email" placeholder="New user email" required>
-            <input type="password" id="new-password" name="password" placeholder="Password" required>
-            <select id="new-role" name="role">
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
-            </select>
-            <button type="submit">Create User</button>
-        </form>
+        <div style="opacity:0.3;" id="topics-nav-unsupported"></div>
+
+        <div class="sidebar-user-info" id="user-links">
+          <div style="padding: 16px; text-align: center; color: #888;">
+            Loading user info...
+          </div>
+        </div>
+      </nav>
     </div>
 
-    <div class="container">
-        <h1>Existing Users</h1>
-        <div id="message-box" class="message"></div>
-        <table id="users-table">
+    <main class="mdl-layout__content">
+      <div class="admin-content">
+        <div class="admin-section">
+          <h3>Create New User</h3>
+          <form class="admin-form" id="create-user-form"> 
+            <div class="form-group">
+              <label for="user-email">New user email</label>
+              <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="email" id="user-email" required>
+                <label class="mdl-textfield__label" for="user-email">Enter email address</label>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="user-password">Password (min 6 chars)</label>
+              <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="password" id="user-password" pattern=".{6,}" required>
+                <label class="mdl-textfield__label" for="user-password">Enter password</label>
+                <span class="mdl-textfield__error">Password must be at least 6 characters</span>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="user-role">Role</label>
+              <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <select class="mdl-textfield__input" id="user-role" style="background: transparent; border: none; color: #f0f0f0; padding: 4px 0; width: 100%;">
+                  <option value="user" style="background: #303030; color: #f0f0f0;">User</option>
+                  <option value="admin" style="background: #303030; color: #f0f0f0;">Admin</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="admin-actions">
+              <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                <i class="material-icons" style="vertical-align: middle; margin-right: 8px;">person_add</i>
+                Create User
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="admin-section">
+          <h3>Existing Users</h3>
+          <table class="users-table">
             <thead>
-                <tr>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Actions</th>
-                </tr>
+              <tr>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
+              </tr>
             </thead>
-            <tbody id="users-tbody">
-                <!-- User rows will be injected here by JavaScript -->
+            <tbody id="users-table-body">
+              <tr>
+                <td colspan="3" style="text-align: center;">Loading users...</td>
+              </tr>
             </tbody>
-        </table>
-        <a href="/rosboard/index.html">Back to Dashboard</a>
-    </div>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const tbody = document.getElementById("users-tbody");
-            const messageBox = document.getElementById("message-box");
-            const createUserForm = document.getElementById("create-user-form");
+  <div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
+    <div class="mdl-snackbar__text"></div>
+    <button class="mdl-snackbar__action" type="button"></button>
+  </div>
 
-            // --- Show a message ---
-            function showMessage(text, type = 'success') {
-                messageBox.textContent = text;
-                messageBox.className = `message ${type}`;
-                messageBox.style.display = 'block';
-                setTimeout(() => { messageBox.style.display = 'none'; }, 3000);
-            }
+  <script>
+    // Helper function to show snackbar messages
+    const showSnackbar = (message, timeout = 4000) => {
+      const snackbar = document.getElementById('snackbar');
+      if (snackbar && snackbar.MaterialSnackbar) {
+        snackbar.MaterialSnackbar.showSnackbar({ message, timeout });
+      } else {
+        console.warn('Snackbar not fully initialized.', message);
+      }
+    };
 
-            // --- 1. Fetch all users on page load ---
-            async function fetchUsers() {
-                try {
-                    const response = await fetch('/api/users');
-                    if (!response.ok) {
-                        if (response.status === 403) {
-                            document.body.innerHTML = '<h1>403 - Forbidden</h1><p>You do not have permission to view this page.</p><a href="/rosboard/index.html">Back to Dashboard</a>';
-                        }
-                        throw new Error(`Server error: ${response.statusText}`);
-                    }
-                    
-                    const users = await response.json();
-                    renderUsers(users);
+    // Helper function to render the user table row
+    const renderUserRow = (user) => {
+      const roleClass = user.role === 'admin' ? 'role-admin' : 'role-user';
+      const row = document.createElement('tr');
+      row.setAttribute('data-user-id', user.id);
+      row.innerHTML = `
+        <td>${user.email}</td>
+        <td><span class="role-badge ${roleClass}">${user.role}</span></td>
+        <td>
+          <button class="mdl-button mdl-js-button mdl-button--icon delete-btn" data-user-id="${user.id}" data-user-email="${user.email}">
+            <i class="material-icons">delete</i>
+          </button>
+        </td>
+      `;
+      // Ensure MDL upgrades buttons in the new row
+      if (typeof componentHandler !== 'undefined') {
+        componentHandler.upgradeElements(row);
+      }
+      return row;
+    };
+    
+    // Function to fetch and render all users
+    const fetchAndRenderUsers = () => {
+      const tableBody = document.getElementById('users-table-body');
+      tableBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Loading users...</td></tr>';
 
-                } catch (error) {
-                    console.error("Failed to fetch users:", error);
-                    showMessage(`Error: ${error.message}`, 'error');
-                }
-            }
-
-            // --- 2. Render the user data into the table ---
-            function renderUsers(users) {
-                tbody.innerHTML = ""; // Clear existing rows
-                users.forEach(user => {
-                    appendUserToTable(user); // Add each user to the table
-                });
-            }
-            
-            // Helper function to add one user to the table
-            function appendUserToTable(user) {
-                const tr = document.createElement("tr");
-                tr.dataset.userId = user.id;
-
-                // Email Column
-                const tdEmail = document.createElement("td");
-                tdEmail.textContent = user.email;
-                tr.appendChild(tdEmail);
-
-                // Role Column (Dropdown)
-                const tdRole = document.createElement("td");
-                const selectRole = document.createElement("select");
-                selectRole.innerHTML = `
-                    <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
-                    <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
-                `;
-                selectRole.addEventListener('change', () => updateUserRole(user.id, selectRole.value));
-                tdRole.appendChild(selectRole);
-                tr.appendChild(tdRole);
-
-                // Actions Column (Delete Button)
-                const tdActions = document.createElement("td");
-                const deleteButton = document.createElement("button");
-                deleteButton.textContent = "Delete";
-                deleteButton.className = "delete";
-                deleteButton.addEventListener('click', () => deleteUser(user.id, user.email));
-                tdActions.appendChild(deleteButton);
-                tr.appendChild(tdActions);
-
-                tbody.appendChild(tr);
-            }
-
-            // --- 3. Function to update a user's role ---
-            async function updateUserRole(id, newRole) {
-                try {
-                    const response = await fetch(`/api/users/${id}/role`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ role: newRole })
-                    });
-                    if (response.ok) {
-                        console.log(`User ${id} role updated to ${newRole}`);
-                        showMessage('User role updated successfully.', 'success');
-                    } else {
-                        throw new Error('Failed to update role');
-                    }
-                } catch (error) {
-                    console.error("Error updating role:", error);
-                    showMessage(`Error: ${error.message}`, 'error');
-                }
-            }
-
-            // --- 4. Function to delete a user ---
-            async function deleteUser(id, email) {
-                if (!confirm(`Are you sure you want to delete the user: ${email}? This will delete their auth account and profile. This action cannot be undone.`)) {
-                    return;
-                }
-
-                try {
-                    const response = await fetch(`/api/users/${id}`, {
-                        method: 'DELETE'
-                    });
-                    if (response.ok) {
-                        console.log(`User ${id} deleted`);
-                        document.querySelector(`tr[data-user-id="${id}"]`).remove();
-                        showMessage('User deleted successfully.', 'success');
-                    } else {
-                        throw new Error('Failed to delete user');
-                    }
-                } catch (error) {
-                    console.error("Error deleting user:", error);
-                    showMessage(`Error: ${error.message}`, 'error');
-                }
-            }
-            
-            // --- 5. Handle Create User Form ---
-            createUserForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const email = document.getElementById('new-email').value;
-                const password = document.getElementById('new-password').value;
-                const role = document.getElementById('new-role').value;
-                
-                try {
-                    const response = await fetch('/api/users', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password, role })
-                    });
-                    
-                    const newUser = await response.json();
-                    
-                    if (response.ok) {
-                        showMessage('User created successfully!', 'success');
-                        appendUserToTable(newUser); // Add the new user to the table
-                        createUserForm.reset(); // Clear the form
-                    } else {
-                        throw new Error(newUser.error || 'Failed to create user');
-                    }
-                } catch (error) {
-                    console.error("Error creating user:", error);
-                    showMessage(`Error: ${error.message}`, 'error');
-                }
-            });
-
-            // Initial load
-            fetchUsers();
+      fetch('/api/users')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Failed to load users: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(users => {
+          tableBody.innerHTML = ''; // Clear loading row
+          users.forEach(user => {
+            tableBody.appendChild(renderUserRow(user));
+          });
+          attachDeleteHandlers(); // Re-attach handlers to new buttons
+        })
+        .catch(error => {
+          console.error("Error loading users:", error);
+          tableBody.innerHTML = `<tr><td colspan="3" style="color: #ff5252; text-align: center;">Error loading users. ${error.message}</td></tr>`;
         });
-    </script>
+    };
+
+    // Function to attach delete event handlers
+    const attachDeleteHandlers = () => {
+      document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const userId = this.getAttribute('data-user-id');
+          const email = this.getAttribute('data-user-email');
+          const row = this.closest('tr');
+          
+          if (confirm(`Are you sure you want to delete user: ${email} (ID: ${userId})? This action is irreversible.`)) {
+            fetch(`/api/users/${userId}`, { method: 'DELETE' })
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error(`Deletion failed: ${response.statusText}`);
+                }
+                return response.json();
+              })
+              .then(() => {
+                row.remove(); // Remove from UI
+                showSnackbar(`User ${email} deleted successfully`);
+              })
+              .catch(error => {
+                console.error("Error deleting user:", error);
+                showSnackbar(`Failed to delete user: ${error.message}`, 6000);
+              });
+          }
+        });
+      });
+    };
+    
+    // --- Main DOM Ready Logic ---
+    document.addEventListener("DOMContentLoaded", function() {
+      console.log("Admin panel loaded, initializing...");
+      
+      // Initialize MDL components
+      if (typeof componentHandler !== 'undefined') {
+        componentHandler.upgradeAllRegistered();
+      }
+
+      const userLinksContainer = document.getElementById("user-links");
+
+      // 1. Fetch user session information (Security Check & Sidebar)
+      fetch('/api/get_session')
+        .then(response => {
+          if (!response.ok) {
+            // Should theoretically be caught by Python middleware, but this handles API failure
+            window.location.href = '/login'; 
+            throw new Error('Not authenticated');
+          }
+          return response.json();
+        })
+        .then(user => {
+          // Render sidebar links
+          let linksHtml = '';
+          if (user.role === 'admin') {
+            linksHtml += `<a class="mdl-navigation__link" href="/admin">
+              <i class="material-icons">admin_panel_settings</i> Admin Panel
+            </a>`;
+          }
+          linksHtml += `
+            <a class="mdl-navigation__link" href="/profile">
+              <i class="material-icons">person</i> Profile
+            </a>
+            <div class="email" title="${user.email}">${user.email}</div>
+            <a class="mdl-navigation__link" href="/logout">
+              <i class="material-icons">logout</i> Logout
+            </a>`;
+          userLinksContainer.innerHTML = linksHtml;
+          
+          if (typeof componentHandler !== 'undefined') {
+            componentHandler.upgradeElements(userLinksContainer);
+          }
+          
+          // 2. Load the list of all existing users
+          fetchAndRenderUsers(); 
+        })
+        .catch(error => {
+          console.error("Error fetching user session:", error);
+          userLinksContainer.innerHTML = `<a class="mdl-navigation__link" href="/login"><i class="material-icons">warning</i> Login Required</a>`;
+        });
+
+      // 3. Form submission handler (Create New User)
+      document.getElementById('create-user-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = document.getElementById('user-email').value;
+        const password = document.getElementById('user-password').value;
+        const role = document.getElementById('user-role').value;
+        
+        // Basic password validation for client-side feedback
+        if (password.length < 6) {
+          showSnackbar("Password must be at least 6 characters.", 3000);
+          return;
+        }
+
+        fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, role })
+        })
+        .then(response => {
+          if (response.status === 400 || response.status === 500) {
+            return response.json().then(data => { throw new Error(data.error || 'Server error during creation.'); });
+          }
+          if (!response.ok) {
+            throw new Error('User creation failed.');
+          }
+          return response.json();
+        })
+        .then(newUserArray => {
+          const newUser = newUserArray[0]; // Supabase returns an array for POST
+          
+          showSnackbar(`User ${newUser.email} created successfully as ${newUser.role}`);
+          
+          // Add the new user to the table
+          const tableBody = document.getElementById('users-table-body');
+          tableBody.appendChild(renderUserRow(newUser));
+          attachDeleteHandlers(); // Re-attach handlers for the new button
+
+          // Reset form inputs
+          document.getElementById('create-user-form').reset();
+          
+          // Reset MDL inputs state
+          const emailField = document.getElementById('user-email').closest('.mdl-js-textfield');
+          const passwordField = document.getElementById('user-password').closest('.mdl-js-textfield');
+          if (emailField && emailField.MaterialTextfield) emailField.MaterialTextfield.change();
+          if (passwordField && passwordField.MaterialTextfield) passwordField.MaterialTextfield.change();
+
+        })
+        .catch(error => {
+          console.error('Error creating user:', error);
+          showSnackbar(`Failed to create user: ${error.message}`, 6000);
+        });
+      });
+      // Initial load of users is handled in the session fetch chain (point 2)
+    });
+  </script>
 </body>
 </html>
-
