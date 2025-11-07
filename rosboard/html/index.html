@@ -7,14 +7,14 @@
   <title>ROSboard Dashboard</title> 
   
   <link rel="stylesheet" href="css/material.indigo-blue.min.css">
-  <link href="css/material-icons.css" rel="stylesheet"> <link href="css/index.css" rel="stylesheet" type="text/css"> 
+  <link href="css/material-icons.css" rel="stylesheet"> 
+  <link href="css/index.css" rel="stylesheet" type="text/css"> 
 
   <script src="js/jquery-3.1.0.min.js"></script>
   <script src="js/material.min.js" defer></script>
 
   <style>
-    /* ... (CSS STYLES ARE UNCHANGED) ... */
-    /* --- ULTIMATE CSS BYPASS FIX: Disabling Conflicting Rules and Forcing Layout --- */
+    /* Simplified CSS to fix the issues */
     html, body {
         overflow: hidden !important;
         margin: 0 !important;
@@ -22,30 +22,84 @@
         height: 100vh !important;
         width: 100% !important;
     }
-    body { position: relative !important; }
-    .mdl-layout__container { position: relative !important; height: 100vh !important; width: 100% !important; }
-    .mdl-layout__drawer { position: fixed !important; top: 0 !important; height: 100vh !important; width: 240px !important; z-index: 15 !important; box-sizing: border-box; }
-    .mdl-layout__header { position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; z-index: 20 !important; height: 64px !important; box-sizing: border-box; }
-    main.mdl-layout__content {
-        left: 240px !important; 
-        top: 64px !important; 
+    
+    .mdl-layout {
+        height: 100vh !important;
+        width: 100% !important;
+    }
+    
+    .mdl-layout__drawer {
+        transform: translateX(0) !important;
+        visibility: visible !important;
+        z-index: 5 !important;
+    }
+    
+    .mdl-layout__content {
+        margin-left: 240px !important;
         width: calc(100% - 240px) !important;
         height: calc(100vh - 64px) !important;
-        position: absolute !important; 
-        overflow-y: auto !important; 
-        overflow-x: hidden !important;
-        z-index: 10 !important; 
-        margin: 0 !important;
+        margin-top: 64px !important;
+        overflow: hidden !important;
     }
-    .welcome-card { width: 100%; max-width: none; margin: 0; padding: 0; background: none; box-shadow: none; height: 100%; display: flex; flex-direction: column; }
-    .mdl-card__title { position: relative; padding: 16px; background-color: #3f51b5; color: white; flex-shrink: 0; }
-    .mdl-card__title h2 { font-size: 1.5rem; color: white; margin: 0; }
-    .page-content { padding: 0; display: flex; flex-direction: column; height: 100%; min-height: calc(100vh - 64px); }
-    .mdl-card__media { flex-grow: 1; display: flex; justify-content: center; align-items: center; overflow: hidden; background-color: #000; }
-    .mdl-card__media img { width: 100%; height: 100%; object-fit: cover; }
-    .mdl-card__supporting-text { display: none !important; height: 0 !important; padding: 0 !important; margin: 0 !important; flex-shrink: 0; }
-    .sidebar-user-info { position: absolute; bottom: 0; width: 100%; border-top: 1px solid rgba(255,255,255,0.1); padding: 16px; box-sizing: border-box; }
-    .sidebar-user-info .email { font-size: 0.9em; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 16px; padding-bottom: 8px; }
+    
+    .page-content {
+        padding: 0 !important;
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .welcome-card {
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .mdl-card__title {
+        flex-shrink: 0 !important;
+        background-color: #3f51b5 !important;
+        color: white !important;
+    }
+    
+    .mdl-card__media {
+        flex-grow: 1 !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        overflow: hidden !important;
+        background-color: #000 !important;
+    }
+    
+    .mdl-card__media img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: contain !important;
+    }
+    
+    .mdl-card__supporting-text {
+        display: none !important;
+    }
+    
+    .sidebar-user-info {
+        position: absolute !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        border-top: 1px solid rgba(255,255,255,0.1) !important;
+        padding: 16px !important;
+        box-sizing: border-box !important;
+    }
+    
+    .sidebar-user-info .email {
+        font-size: 0.9em !important;
+        opacity: 0.7 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        padding-left: 16px !important;
+        padding-bottom: 8px !important;
+    }
   </style>
 </head>
 <body>
