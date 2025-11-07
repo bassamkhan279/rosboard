@@ -7,7 +7,7 @@
   <title>Admin Panel - ROSboard</title>
 
   <link rel="stylesheet" href="css/material.indigo-blue.min.css">
-  <link href="css/local-material-icons.css" rel="stylesheet"> 
+  <link href="css/material-icons.css" rel="stylesheet"> 
   <link href="css/index.css" rel="stylesheet" type="text/css"> 
 
   <script src="js/jquery-3.1.0.min.js"></script>
@@ -22,250 +22,43 @@
       width: 100% !important;
       overflow: hidden !important;
     }
-    body {
-      position: relative !important;
-    }
-
-    .mdl-layout__container {
-      position: relative !important;
-      height: 100vh !important;
-      width: 100% !important;
-    }
-
-    /* Fixed Drawer - Same as index.html */
-    .mdl-layout__drawer {
-      position: fixed !important;
-      top: 0 !important;
-      height: 100vh !important;
-      width: 240px !important;
-      z-index: 15 !important;
-      box-sizing: border-box;
-      background: #404040 !important;
-    }
-    
-    /* Fixed Header - Same as index.html */
-    .mdl-layout__header {
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      width: 100% !important;
-      z-index: 20 !important;
-      height: 64px !important;
-      box-sizing: border-box;
-    }
-
-    /* Main Content - Same as index.html */
+    body { position: relative !important; }
+    .mdl-layout__container { position: relative !important; height: 100vh !important; width: 100% !important; }
+    .mdl-layout__drawer { position: fixed !important; top: 0 !important; height: 100vh !important; width: 240px !important; z-index: 15 !important; box-sizing: border-box; background: #404040 !important; }
+    .mdl-layout__header { position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; z-index: 20 !important; height: 64px !important; box-sizing: border-box; }
     main.mdl-layout__content {
-      left: 240px !important;
-      top: 64px !important;
-      width: calc(100% - 240px) !important;
-      height: calc(100vh - 64px) !important;
-      position: absolute !important;
-      overflow-y: auto !important;
-      overflow-x: hidden !important;
-      z-index: 10 !important;
-      margin: 0 !important;
-      background: #202020 !important;
+      left: 240px !important; top: 64px !important; width: calc(100% - 240px) !important; height: calc(100vh - 64px) !important; position: absolute !important; overflow-y: auto !important; overflow-x: hidden !important; z-index: 10 !important; margin: 0 !important; background: #202020 !important;
     }
-
-    /* === ADMIN CONTENT STYLING (MATCHING DARK THEME) === */
-    .admin-content {
-      padding: 20px;
-      color: #f0f0f0;
-    }
-
-    .admin-section {
-      background: #303030;
-      border-radius: 5px;
-      padding: 20px;
-      margin-bottom: 20pt;
-      box-shadow: 3px 3px 3px rgba(0,0,0,0.2);
-      width: calc(100% - 40pt);
-      margin-left: 20pt;
-      margin-top: 20pt;
-    }
-
-    .admin-section h3 {
-      color: #a0a0a0;
-      font-family: 'Titillium Web', sans-serif;
-      font-size: 12pt;
-      margin-top: 0;
-      margin-bottom: 15pt;
-      padding-top: 10pt;
-      padding-left: 0;
-      padding-bottom: 10pt;
-      border-bottom: 1px solid #404040;
-    }
-
-    /* Form Styling - Dark Theme */
-    .admin-form {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      align-items: flex-end;
-    }
-
-    .form-group {
-      flex: 1;
-      min-width: 200px;
-    }
-
-    .form-group label {
-      display: block;
-      color: #c0c0c0;
-      margin-bottom: 8px;
-      font-size: 0.9rem;
-      font-family: 'Titillium Web', sans-serif;
-    }
-
-    .mdl-textfield {
-      width: 100%;
-    }
-
-    .mdl-textfield__input {
-      border-bottom: 1px solid rgba(255,255,255,0.3);
-      color: #f0f0f0;
-    }
-
-    .mdl-textfield__label {
-      color: rgba(255,255,255,0.5);
-    }
-
-    .mdl-textfield--floating-label.is-focused .mdl-textfield__label,
-    .mdl-textfield--floating-label.is-dirty .mdl-textfield__label {
-      color: #8c9eff;
-    }
-
-    .mdl-textfield__input:focus {
-      border-bottom-color: #8c9eff;
-    }
-
-    /* Button Styling */
-    .admin-actions {
-      margin-top: 16px;
-    }
-
-    /* Table Styling - Dark Theme */
-    .users-table {
-      width: 100%;
-      background: #404040;
-      border-radius: 4px;
-      overflow: hidden;
-      color: #c0c0c0;
-    }
-
-    .users-table th {
-      background: #3f51b5;
-      color: white;
-      font-weight: 500;
-      padding: 16px;
-      text-align: left;
-    }
-
-    .users-table td {
-      padding: 16px;
-      border-bottom: 1px solid #505050;
-      color: #c0c0c0;
-    }
-
-    .users-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    .users-table tr:hover {
-      background: rgba(255,255,255,0.05);
-    }
-
-    /* Role Badges */
-    .role-badge {
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 0.8rem;
-      font-weight: 500;
-      text-transform: uppercase;
-    }
-
-    .role-admin {
-      background: #f44336;
-      color: white;
-    }
-
-    .role-user {
-      background: #4caf50;
-      color: white;
-    }
-
-    /* Delete Button */
-    .delete-btn {
-      color: #ff5252;
-      min-width: auto;
-    }
-
-    .delete-btn:hover {
-      background: rgba(255, 82, 82, 0.1);
-    }
-
-    /* === EXACT SAME NAVIGATION AS INDEX.HTML === */
-    .mdl-navigation__link {
-      color: #c0c0c0 !important;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      padding-top: 5pt !important;
-      padding-bottom: 5pt !important;
-      display: flex;
-      align-items: center;
-    }
-
-    .mdl-navigation__link:hover {
-      color: #404040 !important;
-    }
-
-    .mdl-navigation__link .material-icons {
-      margin-right: 16px;
-      font-size: 20px;
-    }
-
-    .topics-nav-title {
-      text-transform: uppercase;
-      color: #808080;
-      font-size: 10pt;
-      font-weight: 700;
-      padding-left: 10pt;
-      border-bottom: 1px dotted #505050;
-      padding-top: 10pt;
-      padding-bottom: 10pt;
-    }
-
-    .sidebar-user-info {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      padding: 16px;
-      box-sizing: border-box;
-    }
-
-    .sidebar-user-info .email {
-      font-size: 0.9em;
-      opacity: 0.7;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      padding-left: 16px;
-      padding-bottom: 8px;
-      color: #c0c0c0;
-    }
-
-    /* Drawer button styling */
-    .mdl-layout__drawer-button {
-      color: white !important;
-    }
-
-    /* Make sure the layout titles match */
-    .mdl-layout-title {
-      font-family: 'Titillium Web', sans-serif;
-      color: #c0c0c0;
-    }
+    .admin-content { padding: 20px; color: #f0f0f0; }
+    .admin-section { background: #303030; border-radius: 5px; padding: 20px; margin-bottom: 20pt; box-shadow: 3px 3px 3px rgba(0,0,0,0.2); width: calc(100% - 40pt); margin-left: 20pt; margin-top: 20pt; }
+    .admin-section h3 { color: #a0a0a0; font-family: 'Titillium Web', sans-serif; font-size: 12pt; margin-top: 0; margin-bottom: 15pt; padding-top: 10pt; padding-left: 0; padding-bottom: 10pt; border-bottom: 1px solid #404040; }
+    .admin-form { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+    .form-group { flex: 1; min-width: 200px; }
+    .form-group label { display: block; color: #c0c0c0; margin-bottom: 8px; font-size: 0.9rem; font-family: 'Titillium Web', sans-serif; }
+    .mdl-textfield { width: 100%; }
+    .mdl-textfield__input { border-bottom: 1px solid rgba(255,255,255,0.3); color: #f0f0f0; }
+    .mdl-textfield__label { color: rgba(255,255,255,0.5); }
+    .mdl-textfield--floating-label.is-focused .mdl-textfield__label, .mdl-textfield--floating-label.is-dirty .mdl-textfield__label { color: #8c9eff; }
+    .mdl-textfield__input:focus { border-bottom-color: #8c9eff; }
+    .admin-actions { margin-top: 16px; }
+    .users-table { width: 100%; background: #404040; border-radius: 4px; overflow: hidden; color: #c0c0c0; }
+    .users-table th { background: #3f51b5; color: white; font-weight: 500; padding: 16px; text-align: left; }
+    .users-table td { padding: 16px; border-bottom: 1px solid #505050; color: #c0c0c0; }
+    .users-table tr:last-child td { border-bottom: none; }
+    .users-table tr:hover { background: rgba(255,255,255,0.05); }
+    .role-badge { padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 500; text-transform: uppercase; }
+    .role-admin { background: #f44336; color: white; }
+    .role-user { background: #4caf50; color: white; }
+    .delete-btn { color: #ff5252; min-width: auto; }
+    .delete-btn:hover { background: rgba(255, 82, 82, 0.1); }
+    .mdl-navigation__link { color: #c0c0c0 !important; text-overflow: ellipsis; overflow: hidden; padding-top: 5pt !important; padding-bottom: 5pt !important; display: flex; align-items: center; }
+    .mdl-navigation__link:hover { color: #404040 !important; }
+    .mdl-navigation__link .material-icons { margin-right: 16px; font-size: 20px; }
+    .topics-nav-title { text-transform: uppercase; color: #808080; font-size: 10pt; font-weight: 700; padding-left: 10pt; border-bottom: 1px dotted #505050; padding-top: 10pt; padding-bottom: 10pt; }
+    .sidebar-user-info { position: absolute; bottom: 0; width: 100%; border-top: 1px solid rgba(255,255,255,0.1); padding: 16px; box-sizing: border-box; }
+    .sidebar-user-info .email { font-size: 0.9em; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 16px; padding-bottom: 8px; color: #c0c0c0; }
+    .mdl-layout__drawer-button { color: white !important; }
+    .mdl-layout-title { font-family: 'Titillium Web', sans-serif; color: #c0c0c0; }
   </style>
 </head>
 <body>
