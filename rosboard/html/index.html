@@ -1,173 +1,219 @@
 <!doctype html>
-<html>
-    <head>
-      <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  
+  <title>ROSboard Dashboard</title> <link rel="stylesheet" href="css/material.indigo-blue.min.css">
+  <link href="css/local-material-icons.css" rel="stylesheet"> 
+  <link href="css/index.css" rel="stylesheet" type="text/css"> 
+
+  <script src="js/jquery-3.1.0.min.js"></script>
+  <script src="js/material.min.js" defer></script>
+
+  <style>
+    /* --- ULTIMATE CSS BYPASS FIX: Disabling Conflicting Rules and Forcing Layout --- */
+    
+    /* 1. Reset high-level elements that conflict with MDL's desktop layout */
+    html, body {
+        overflow: hidden !important; /* Keep from index.css, but ensure container is absolute */
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 100vh !important;
+        width: 100% !important;
+    }
+    body {
+        position: relative !important; /* Use relative positioning to let the container work */
+    }
+
+    /* 2. Style the main MDL container to take control of the layout */
+    .mdl-layout__container {
+        position: relative !important;
+        height: 100vh !important; 
+        width: 100% !important;
+    }
+
+    /* 3. Force the DRAWER to be fixed on the left (240px wide) */
+    .mdl-layout__drawer {
+        position: fixed !important;
+        top: 0 !important;
+        height: 100vh !important;
+        width: 240px !important;
+        z-index: 15 !important;
+        box-sizing: border-box; /* Important to keep width exact */
+    }
+    
+    /* 4. Position the HEADER to cover the entire top width */
+    .mdl-layout__header {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        z-index: 20 !important;
+        height: 64px !important;
+        box-sizing: border-box;
+    }
+
+    /* 5. Force the MAIN CONTENT to take the remaining screen space */
+    main.mdl-layout__content {
+        /* CRITICAL: Pushes content right, starting after the drawer (240px) */
+        left: 240px !important; 
+        top: 64px !important; /* Starts below the header (64px) */
         
-        <!-- Load icon font from Google's CDN -->
-        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        width: calc(100% - 240px) !important;
+        height: calc(100vh - 64px) !important;
         
-        <script type="text/javascript" src="js/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="></script>
-        <link rel="stylesheet" href="css/material.indigo-blue.min.css" />
-        <link rel="stylesheet" href="css/uPlot.min.css">
-        <link rel="stylesheet" href="css/leaflet.css">
-        <link href="css/index.css" media="all" rel="stylesheet" type="text/css">
-        
-        <script type="text/javascript" src="js/json5.min.js"></script>
-        <script type="text/javascript" src="js/uPlot.iife.min.js"></script>
-        <script type="text/javascript" src="js/jquery.transit.min.js"></script>
-        <script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
-        <script type="text/javascript" src="js/eventemitter2.min.js"></script>
-
-        <!-- 🟢 FIX: Corrected the typo 'text=' to 'type=' -->
-        <script type="text/javascript" src="js/import-helper.js"></script>
-        
-        <script type="text/javascript" src="js/material.min.js" defer></script>
-        <script type.text.javascript" src="js/leaflet.js"></script>      
-        <script type="text/javascript" src="js/gl-matrix.js"></script>
-        <script type="text/javascript" src="js/litegl.min.js"></script>
-        <script type="text/javascript" src="js/index.js" defer></script>
-
-        <title></title>
-        
-        <!-- Style for the new sidebar user area -->
-        <style>
-          .sidebar-user-info {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding: 16px;
-            box-sizing: border-box; /* Important */
-          }
-          .sidebar-user-info .email {
-            font-size: 0.9em;
-            opacity: 0.7;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding-left: 16px; /* Align with links */
-            padding-bottom: 8px;
-          }
-        </style>
-    </head>
-    <body>
-        <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-          <header class="mdl-layout__header">
-            <div class="mdl-layout__header-row">
-              
-              <!-- This is the "three lines" hamburger menu button -->
-              <div class="mdl-layout__drawer-button">
-                <i class="material-icons">menu</i>
-              </div>
-
-              <!-- Title -->
-              <span class="mdl-layout-title">ROSboard</span>
-              
-              <!-- Add spacer, to align navigation to the right -->
-              <div class="mdl-layout-spacer"></div>
-            </div>
-          </header>
-          <div class="mdl-layout__drawer">
-            <!-- This is your existing sidebar menu -->
-            <nav id="topics-nav" class="mdl-navigation">
-                
-                <div id="topics-nav-system-title" class="topics-nav-title">System</div>
-                <div id="topics-nav-system"></div>
-
-                <!-- START: === Your Custom Links === -->
-                <div id="topics-nav-ros-title" class="topics-nav-title">ROBOT 2</div>
-                
-                <a class="mdl-navigation__link" href="/rosboard/camera.html" style="display: flex; align-items: center;">
-                  <i class="material-icons" style="padding-right: 16px;">videocam</i>
-                  Camera
-                </a>
-                
-                <a class="mdl-navigation__link" href="/rosboard/odom.html" style="display: flex; align-items: center;">
-                  <i class="material-icons" style="padding-right: 16px;">explore</i>
-                  Odom
-                </a>
-                <!-- END: === Your Custom Links === -->
-
-                
-                <div style="opacity:0.3;" id="topics-nav-unsupported"></div>
-
-                <!-- Placeholder for user links (Profile, Admin, etc) -->
-                <div class="sidebar-user-info" id="user-links">
-                    <!-- Links will be inserted here by JS -->
-                </div>
-            </nav>
-          </div>
-          <main class="mdl-layout__content">
-            <div class="page-content">
-              <div class="grid">
-              </div>
-            </div>
-          </main>
+        position: absolute !important; 
+        overflow-y: auto !important; 
+        overflow-x: hidden !important;
+        z-index: 10 !important; 
+        margin: 0 !important; /* Remove all margins */
+    }
+    
+    /* --- Image and Title Layout (Perfect) --- */
+    .welcome-card {
+      width: 100%; max-width: none; margin: 0; padding: 0; background: none; box-shadow: none;
+      height: 100%; display: flex; flex-direction: column; 
+    }
+    .mdl-card__title {
+        position: relative; padding: 16px; background-color: #3f51b5; color: white; flex-shrink: 0; 
+    }
+    .mdl-card__title h2 {
+      font-size: 1.5rem; color: white; margin: 0;
+    }
+    .page-content {
+      padding: 0; display: flex; flex-direction: column; height: 100%; 
+      min-height: calc(100vh - 64px); 
+    }
+    .mdl-card__media {
+      flex-grow: 1; display: flex; justify-content: center; align-items: center; 
+      overflow: hidden; background-color: #000; 
+    }
+    .mdl-card__media img {
+      width: 100%; height: 100%; object-fit: cover; 
+    }
+    .mdl-card__supporting-text {
+        display: none !important; height: 0 !important; padding: 0 !important; margin: 0 !important; flex-shrink: 0; 
+    }
+    .sidebar-user-info {
+      position: absolute; bottom: 0; width: 100%; border-top: 1px solid rgba(255,255,255,0.1);
+      padding: 16px; box-sizing: border-box;
+    }
+    .sidebar-user-info .email {
+      font-size: 0.9em; opacity: 0.7; white-space: nowrap; overflow: hidden;
+      text-overflow: ellipsis; padding-left: 16px; padding-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
+    
+    <header class="mdl-layout__header">
+      <div class="mdl-layout__header-row">
+        <div class="mdl-layout__drawer-button">
+          <i class="material-icons">menu</i>
         </div>
-        
-      <div id="demo-toast-example" class="mdl-js-snackbar mdl-snackbar">
-        <div class="mdl-snackbar__text"></div>
-        <button class="mdl-snackbar__action" type="button"></button>
+        <span class="mdl-layout-title">ROSboard Dashboard</span> <div class="mdl-layout-spacer"></div>
       </div>
+    </header>
+    
+    <div class="mdl-layout__drawer">
+      <span class="mdl-layout-title">Menu</span> <nav id="topics-nav" class="mdl-navigation">
+        <a class="mdl-navigation__link" href="/index.html">
+          <i class="material-icons">dashboard</i> Dashboard
+        </a>
+        
+        <div class="topics-nav-title">System</div>
+        <div id="topics-nav-system"></div>
 
-      <!-- This script fetches your session and builds the sidebar links -->
-      <script>
-        document.addEventListener("DOMContentLoaded", () => {
-          const userLinksContainer = document.getElementById("user-links");
+        <div class="topics-nav-title">ROBOT 2</div>
+        
+        <a class="mdl-navigation__link" href="/camera.html">
+          <i class="material-icons">videocam</i> Camera
+        </a>
+        <a class="mdl-navigation__link" href="/odom.html">
+          <i class="material-icons">explore</i> Scanner
+        </a>
 
-          // Fetch the user session from the API we created
-          fetch('/api/get_session')
-            .then(response => {
-              if (response.ok) {
-                return response.json();
-              }
-              // If not OK, we're not logged in, redirect.
-              window.location.href = '/login';
-            })
-            .then(user => {
-              if (!user || !user.email) {
-                window.location.href = '/login';
-                return;
-              }
+        <div style="opacity:0.3;" id="topics-nav-unsupported"></div>
 
-              let linksHtml = '';
+        <div class="sidebar-user-info" id="user-links"></div>
+      </nav>
+    </div>
 
-              // 1. Add Admin Panel link (if user is admin)
-              if (user.role === 'admin') {
-                linksHtml += `
-                  <a class="mdl-navigation__link" href="/admin" style="display: flex; align-items: center;">
-                    <i class="material-icons" style="padding-right: 16px;">admin_panel_settings</i>
-                    Admin Panel
-                  </a>
-                `;
-              }
+    <main class="mdl-layout__content">
+      <div class="page-content">
+        <div class="mdl-card welcome-card"> 
+          
+          <div class="mdl-card__title">
+            <h2 class="mdl-card__title-text">
+              Welcome to the Autonomous Oil Palm Harvesting Robot System
+            </h2>
+          </div>
+          
+          <div class="mdl-card__media">
+            <img src="images/oil-palm.jpeg" alt="Oil Palm Harvesting Robot">
+          </div>
+          
+          <div class="mdl-card__supporting-text">
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
 
-              // 2. Add Profile link (for everyone)
-              linksHtml += `
-                <a class="mdl-navigation__link" href="/profile" style="display: flex; align-items: center;">
-                  <i class="material-icons" style="padding-right: 16px;">person</i>
-                  Profile
-                </a>
-              `;
-              
-              // 3. Add email and logout button
-              linksHtml += `
-                <div class="email" title="${user.email}">${user.email}</div>
-                <a class="mdl-navigation__link" href="/logout" style="display: flex; align-items: center;">
-                  <i class="material-icons" style="padding-right: 16px;">logout</i>
-                  Logout
-                </a>
-              `;
+  <div id="demo-toast-example" class="mdl-js-snackbar mdl-snackbar">
+    <div class="mdl-snackbar__text"></div>
+    <button class="mdl-snackbar__action" type="button"></button>
+  </div>
 
-              // Add all the new links to the sidebar
-              userLinksContainer.innerHTML = linksHtml;
-            })
-            .catch(error => {
-              console.error("Error fetching session:", error);
-              // If anything fails, send back to login
-              // window.location.href = '/login';
-            });
+  <script>
+    // --- Session Loading and Sidebar Rendering (Secured) ---
+    document.addEventListener("DOMContentLoaded", () => {
+      // FIX: Ensure MDL is ready
+      if (typeof componentHandler === 'undefined') {
+        console.error("MDL JavaScript is not running.");
+      }
+      
+      const userLinksContainer = document.getElementById("user-links");
+
+      fetch('/api/get_session')
+        .then(response => {
+          if (!response.ok) { 
+            // If API fails (e.g., 401 Not Authenticated), redirect to login
+            window.location.href = '/login'; 
+            throw new Error('Not authenticated');
+          }
+          return response.json();
+        })
+        .then(user => {
+          // User is authenticated, render sidebar links
+          let linksHtml = '';
+
+          // FIX: Use secure /admin route for Admin Panel
+          if (user.role === 'admin') {
+            linksHtml += `<a class="mdl-navigation__link" href="/admin"><i class="material-icons">admin_panel_settings</i> Admin Panel</a>`;
+          }
+          
+          // FIX: Use secure /profile and /logout routes
+          linksHtml += `<a class="mdl-navigation__link" href="/profile"><i class="material-icons">person</i> Profile</a>
+            <div class="email" title="${user.email}">${user.email}</div>
+            <a class="mdl-navigation__link" href="/logout"><i class="material-icons">logout</i> Logout</a>`;
+
+          userLinksContainer.innerHTML = linksHtml;
+          
+          // FIX: Upgrade newly inserted MDL elements
+          if (typeof componentHandler !== 'undefined') {
+            componentHandler.upgradeElements(userLinksContainer);
+          }
+        })
+        .catch(error => { 
+            // Only log error if it wasn't the intentional authentication error
+            if (error.message !== 'Not authenticated') {
+                console.error("Error fetching session:", error); 
+            }
         });
-      </script>
-    </body>
+    });
+  </script>
+</body>
 </html>
