@@ -120,7 +120,7 @@ def is_port_in_use(port):
         return s.connect_ex(('localhost', port)) == 0
 
 #
-# ### MODIFIED ### - Combined Publisher Spawner
+# ### MODIFIED (STABILIZED) ### - Combined Publisher Spawner
 #
 def run_publisher_nodes():
     if not os.environ.get("ROS_DISTRO"):
@@ -131,25 +131,27 @@ def run_publisher_nodes():
 
     # --- 1. Launch the Camera Node ---
     print("[Camera Node] 🚀 Launching Camera Publisher...")
-    # ⚠️ REPLACE 'usb_cam' and 'usb_cam_node' with your actual package/node
-    camera_cmd = ["rosrun", "usb_cam", "usb_cam_node"] 
+    # ❌ TEMPORARILY COMMENTING OUT FAILING CAMERA NODE TO PREVENT SERVER CRASH
+    # camera_cmd = ["rosrun", "usb_cam", "usb_cam_node"] 
     
-    try:
-        subprocess.Popen(camera_cmd, env=env)
-        print("[Camera Node] ✅ Camera node started.")
-    except Exception as e:
-        print(f"[Camera Node] ❌ Failed to start camera node. Error: {e}")
+    # try:
+    #     subprocess.Popen(camera_cmd, env=env)
+    #     print("[Camera Node] ✅ Camera node started.")
+    # except Exception as e:
+    #     print(f"[Camera Node] ❌ Failed to start camera node. Error: {e}")
 
     # --- 2. Launch the Battery Monitor Node ---
     print("[Battery Node] 🚀 Launching Battery Monitor...")
-    # ⚠️ REPLACE 'your_robot_package' and 'battery_monitor_node.py' with your actual package/node
-    battery_cmd = ["rosrun", "your_robot_package", "battery_monitor_node.py"] 
+    # ❌ TEMPORARILY COMMENTING OUT FAILING BATTERY NODE TO PREVENT SERVER CRASH
+    # battery_cmd = ["rosrun", "your_robot_package", "battery_monitor_node.py"] 
     
-    try:
-        subprocess.Popen(battery_cmd, env=env)
-        print("[Battery Node] ✅ Battery monitor started.")
-    except Exception as e:
-        print(f"[Battery Node] ❌ Failed to start battery monitor. Error: {e}")
+    # try:
+    #     subprocess.Popen(battery_cmd, env=env)
+    #     print("[Battery Node] ✅ Battery monitor started.")
+    # except Exception as e:
+    #     print(f"[Battery Node] ❌ Failed to start battery monitor. Error: {e}")
+    
+    print("[Publishers] ⚠️ ROS node spawning temporarily DISABLED to bypass 'package not found' errors. Pages will load, but data will be blank.")
 #
 # ------------------------------------------------
 #
@@ -303,7 +305,7 @@ async def login_page(request):
     return web.FileResponse(login_path)
 
 # -------------------------------------------------------------
-# ### NEW/MODIFIED ### - SECURE PAGE HANDLERS
+# ### NEW/MODIFIED ### - SECURE PAGE HANDLERS (Unmodified)
 # -------------------------------------------------------------
 
 async def index_page(request):
@@ -602,9 +604,23 @@ def main():
         # ### NEW/MODIFIED ###: Start Camera Node and ROSBoard Backend
         threading.Thread(target=run_publisher_nodes, daemon=True).start() # Starts Camera and Battery
         threading.Thread(target=run_rosboard_backend, daemon=True).start()
+        
+        # --- ADDED: Wait for the ROSBoard backend to start listening on port 8899 ---
+        BACKEND_PORT = 8899
+        print(f"[ROSBoard] ⏱️ Waiting for backend to initialize on port {BACKEND_PORT}...")
+        
+        # Give it up to 10 seconds to start up (adjust if needed)
+        for i in range(10): 
+            if is_port_in_use(BACKEND_PORT):
+                print(f"[ROSBoard] ✅ Backend detected on port {BACKEND_PORT}.")
+                break
+            print(f"[ROSBoard] Waiting... ({i+1}s)")
+            time.sleep(1)
+        else:
+            print(f"[ROSBoard] ❌ WARNING: Backend failed to start on port {BACKEND_PORT} after 10s.")
+        # --- END ADDED BLOCK ---
     else:
         print("[ROSBoard] ⚙️ Running in main mode — backend not spawned to avoid recursion.")
-
     app = web.Application(middlewares=[
         aiohttp_session.session_middleware(SimpleCookieStorage()),
         require_login_middleware
