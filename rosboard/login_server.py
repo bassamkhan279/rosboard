@@ -321,7 +321,15 @@ async def camera_page(request):
     session = await get_session(request)
     if "user" not in session:
         raise web.HTTPFound("/login")
-    return web.FileResponse(WEB_DIR / "camera.html")
+    # Redirect to the ROSBoard proxied path
+    raise web.HTTPFound("/rosboard/camera.html")
+
+async def odom_page(request):
+    """Serves the odom.html page only to logged-in users."""
+    session = await get_session(request)
+    if "user" not in session:
+        raise web.HTTPFound("/login")
+    return web.FileResponse(WEB_DIR / "odom.html")
 
 # --- Logout, Register, Forgot Password, Admin, Profile, API Endpoints (Unmodified) ---
 async def logout(request):
@@ -643,6 +651,7 @@ def main():
     # ### NEW/MODIFIED ###: SECURE APP PAGES
     app.router.add_get("/index.html", index_page)
     app.router.add_get("/camera.html", camera_page)
+    app.router.add_get("/odom.html", odom_page)
     
     # ROSBoard Proxy Routes
     app.router.add_route("*", "/rosboard", rosboard_proxy)
