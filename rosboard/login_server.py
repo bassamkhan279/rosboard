@@ -124,35 +124,30 @@ def is_port_in_use(port):
 # ### MODIFIED (STABILIZED) ### - Combined Publisher Spawner
 #
 def run_publisher_nodes():
-    if not os.environ.get("ROS_DISTRO"):
-        print("[Publishers] ⚠️ ROS environment not sourced, skipping node spawn.")
-        return
-    
-    env = os.environ.copy()
+    # ... (omitted setup)
 
     # --- 1. Launch the Camera Node ---
     print("[Camera Node] 🚀 Launching Camera Publisher...")
-    # ❌ TEMPORARILY COMMENTING OUT FAILING CAMERA NODE TO PREVENT SERVER CRASH
-    # camera_cmd = ["rosrun", "usb_cam", "usb_cam_node"] 
+    # ✅ UNCOMMENT THIS:
+    camera_cmd = ["rosrun", "usb_cam", "usb_cam_node"] 
     
-    # try:
-    #     subprocess.Popen(camera_cmd, env=env)
-    #     print("[Camera Node] ✅ Camera node started.")
-    # except Exception as e:
-    #     print(f"[Camera Node] ❌ Failed to start camera node. Error: {e}")
+    try:
+        subprocess.Popen(camera_cmd, env=env)
+        print("[Camera Node] ✅ Camera node started.")
+    except Exception as e:
+        print(f"[Camera Node] ❌ Failed to start camera node. Error: {e}")
 
     # --- 2. Launch the Battery Monitor Node ---
     print("[Battery Node] 🚀 Launching Battery Monitor...")
-    # ❌ TEMPORARILY COMMENTING OUT FAILING BATTERY NODE TO PREVENT SERVER CRASH
-    # battery_cmd = ["rosrun", "your_robot_package", "battery_monitor_node.py"] 
+    # ✅ UNCOMMENT THIS:
+    battery_cmd = ["rosrun", "your_robot_package", "battery_monitor_node.py"] 
     
-    # try:
-    #     subprocess.Popen(battery_cmd, env=env)
-    #     print("[Battery Node] ✅ Battery monitor started.")
-    # except Exception as e:
-    #     print(f"[Battery Node] ❌ Failed to start battery monitor. Error: {e}")
-    
-    print("[Publishers] ⚠️ ROS node spawning temporarily DISABLED to bypass 'package not found' errors. Pages will load, but data will be blank.")
+    try:
+        subprocess.Popen(battery_cmd, env=env)
+        print("[Battery Node] ✅ Battery monitor started.")
+    except Exception as e:
+        print(f"[Battery Node] ❌ Failed to start battery monitor. Error: {e}")
+        
 #
 # ------------------------------------------------
 #
@@ -314,7 +309,8 @@ async def index_page(request):
     session = await get_session(request)
     if "user" not in session:
         raise web.HTTPFound("/login")
-    return web.FileResponse(WEB_DIR / "index.html")
+    # Redirect to the ROSBoard proxied path
+    raise web.HTTPFound("/rosboard/index.html")
 
 async def camera_page(request):
     """Serves the camera.html page only to logged-in users."""
@@ -322,14 +318,15 @@ async def camera_page(request):
     if "user" not in session:
         raise web.HTTPFound("/login")
     # Redirect to the ROSBoard proxied path
-    raise web.HTTPFound("/rosboard/camera.html")
+    raise web.HTTPFound("/rosboard/camera.html") # <--- MODIFIED
 
 async def odom_page(request):
     """Serves the odom.html page only to logged-in users."""
     session = await get_session(request)
     if "user" not in session:
         raise web.HTTPFound("/login")
-    return web.FileResponse(WEB_DIR / "odom.html")
+    # Redirect to the ROSBoard proxied path
+    raise web.HTTPFound("/rosboard/odom.html")
 
 # --- Logout, Register, Forgot Password, Admin, Profile, API Endpoints (Unmodified) ---
 async def logout(request):
