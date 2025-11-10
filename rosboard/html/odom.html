@@ -1,542 +1,290 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  
-  <title>Robot Scanner - ROSboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  
+  <title>Robot Scanner - Autonomous Oil Palm Harvesting Robot System</title>
 
-  <link rel="stylesheet" href="css/material.indigo-blue.min.css">
-  <link href="css/local-material-icons.css" rel="stylesheet">
-  <link rel="stylesheet" href="css/uPlot.min.css">
-  <link rel="stylesheet" href="css/leaflet.css">
-  <link href="css/index.css" rel="styleshe<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  
-  <title>Robot Scanner - ROSboard</title>
+  <link rel="stylesheet" href="css/material.indigo-blue.min.css">
+  <link href="css/material-icons.css" rel="stylesheet"> 
+  <link rel="stylesheet" href="css/uPlot.min.css">
+  <link rel="stylesheet" href="css/leaflet.css">
+  <link href="css/index.css" rel="stylesheet" type="text/css">
 
-  <link rel="stylesheet" href="css/material.indigo-blue.min.css">
-  <link href="css/local-material-icons.css" rel="stylesheet">
-  <link rel="stylesheet" href="css/uPlot.min.css">
-  <link rel="stylesheet" href="css/leaflet.css">
-  <link href="css/index.css" rel="stylesheet" type="text/css">
+  <script type="text/javascript" src="js/jquery-3.1.0.min.js"></script>
+  <script type="text/javascript" src="js/json5.min.js"></script>
+  <script type="text/javascript" src="js/uPlot.iife.min.js"></script>
+  <script type="text/javascript" src="js/jquery.transit.min.js"></script>
+  <script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
+  <script type="text/javascript" src="js/eventemitter2.min.js"></script>
+  <script type="text/javascript" src="js/import-helper.js"></script>
+  <script type="text/javascript" src="js/material.min.js" defer></script>
+  <script type="text/javascript" src="js/leaflet.js"></script>      
+  <script type="text/javascript" src="js/gl-matrix.js"></script>
+  <script type="text/javascript" src="js/litegl.min.js"></script>
+  <script type="text/javascript" src="js/transports/WebSocketV1Transport.js"></script> 
 
-  <script type="text/javascript" src="js/jquery-3.1.0.min.js"></script>
-  <script type="text/javascript" src="js/json5.min.js"></script>
-  <script type="text/javascript" src="js/uPlot.iife.min.js"></script>
-  <script type="text/javascript" src="js/jquery.transit.min.js"></script>
-  <script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
-  <script type="text/javascript" src="js/eventemitter2.min.js"></script>
-  <script type="text/javascript" src="js/import-helper.js"></script>
-  <script type="text/javascript" src="js/material.min.js" defer></script>
-  <script type="text/javascript" src="js/leaflet.js"></script>      
-  <script type="text/javascript" src="js/gl-matrix.js"></script>
-  <script type="text/javascript" src="js/litegl.min.js"></script>
-
-  <style>
-    /* === STYLING (Unmodified, as requested) === */
-    html, body {
-      margin: 0 !important;
-      padding: 0 !important;
-      height: 100vh !important;
-      width: 100% !important;
-      overflow: hidden !important;
-      background: #202020 !important;
-    }
-    body {
-      position: relative !important;
-      font-family: 'Titillium Web', sans-serif !important;
-      color: #f0f0f0 !important;
-    }
-
-    /* Rest of your CSS styles for layout, scanner, and navigation */
-
-    .mdl-layout__container {
-      position: relative !important;
-      height: 100vh !important;
-      width: 100% !important;
-    }
-
-    .mdl-layout__drawer {
-      position: fixed !important;
-      top: 0 !important;
-      height: 100vh !important;
-      width: 240px !important;
-      z-index: 15 !important;
-      box-sizing: border-box;
-      background: #404040 !important;
-    }
-    
-    .mdl-layout__header {
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      width: 100% !important;
-      z-index: 20 !important;
-      height: 64px !important;
-      box-sizing: border-box;
-    }
-
-    main.mdl-layout__content {
-      left: 240px !important;
-      top: 64px !important;
-      width: calc(100% - 240px) !important;
-      height: calc(100vh - 64px) !important;
-      position: absolute !important;
-      overflow-y: auto !important;
-      overflow-x: hidden !important;
-      z-index: 10 !important;
-      margin: 0 !important;
-      background: #202020 !important;
-    }
-
-    .scanner-container {
-      padding: 20px;
-      color: #f0f0f0;
-    }
-
-    .scanner-card {
-      background: #303030 !important;
-      border-radius: 5px !important;
-      padding: 0 !important;
-      margin: 20pt !important;
-      box-shadow: 3px 3px 3px rgba(0,0,0,0.2) !important;
-      width: calc(100% - 40pt) !important;
-    }
-
-    .scanner-card .mdl-card__title {
-      background-color: #3f51b5 !important;
-      color: white !important;
-      padding: 16px !important;
-    }
-
-    .scanner-card .mdl-card__title-text {
-      color: white !important;
-      font-family: 'Titillium Web', sans-serif !important;
-      font-size: 1.2rem !important;
-    }
-
-    .scanner-content {
-      padding: 20px;
-      position: relative;
-    }
-
-    #scannerCanvas {
-      background: #000000 !important;
-      border: 2px solid #3f51b5 !important;
-      border-radius: 8px !important;
-      display: block !important;
-      margin: 0 auto !important;
-      box-shadow: 0 0 20px rgba(63, 81, 181, 0.3) !important;
-    }
-
-    .scanner-overlay {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      right: 20px;
-      color: #f0f0f0;
-      pointer-events: none;
-    }
-
-    .scanner-info {
-      background: rgba(0, 0, 0, 0.8);
-      padding: 15px;
-      border-radius: 5px;
-      margin-bottom: 15px;
-      border-left: 4px solid #3f51b5;
-    }
-
-    .scanner-info h4 {
-      margin: 0 0 8px 0;
-      color: #8c9eff;
-      font-size: 1.1rem;
-    }
-
-    .scanner-stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-top: 15px;
-    }
-
-    .stat-item {
-      background: rgba(63, 81, 181, 0.1);
-      padding: 12px;
-      border-radius: 5px;
-      border: 1px solid rgba(63, 81, 181, 0.3);
-    }
-
-    .stat-label {
-      font-size: 0.9rem;
-      color: #c0c0c0;
-      margin-bottom: 5px;
-    }
-
-    .stat-value {
-      font-size: 1.2rem;
-      color: #8c9eff;
-      font-weight: bold;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .detection-indicator {
-      display: inline-block;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      margin-right: 8px;
-      animation: pulse 2s infinite;
-    }
-
-    .detected {
-      background: #4caf50;
-    }
-
-    .searching {
-      background: #ff9800;
-    }
-
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.5; }
-      100% { opacity: 1; }
-    }
-
-    .mdl-navigation__link {
-      color: #c0c0c0 !important;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      padding-top: 5pt !important;
-      padding-bottom: 5pt !important;
-      display: flex;
-      align-items: center;
-    }
-
-    .mdl-navigation__link:hover {
-      color: #404040 !important;
-    }
-
-    .mdl-navigation__link .material-icons {
-      margin-right: 16px;
-      font-size: 20px;
-    }
-
-    .topics-nav-title {
-      text-transform: uppercase;
-      color: #808080;
-      font-size: 10pt;
-      font-weight: 700;
-      padding-left: 10pt;
-      border-bottom: 1px dotted #505050;
-      padding-top: 10pt;
-      padding-bottom: 10pt;
-    }
-
-    .sidebar-user-info {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      padding: 16px;
-      box-sizing: border-box;
-    }
-
-    .sidebar-user-info .email {
-      font-size: 0.9em;
-      opacity: 0.7;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      padding-left: 16px;
-      padding-bottom: 8px;
-      color: #c0c0c0;
-    }
-
-    .status-connected {
-      color: #4caf50;
-    }
-
-    .status-disconnected {
-      color: #f44336;
-    }
-  </style>
+  <style>
+    /* === STYLING (Unmodified, as requested) === */
+    html, body {
+      margin: 0 !important; padding: 0 !important; height: 100vh !important; width: 100% !important; overflow: hidden !important; background: #202020 !important;
+    }
+    body { position: relative !important; font-family: 'Titillium Web', sans-serif !important; color: #f0f0f0 !important; }
+    /* ... (rest of CSS styles) ... */
+    .mdl-layout__container { position: relative !important; height: 100vh !important; width: 100% !important; }
+    .mdl-layout__drawer { position: fixed !important; top: 0 !important; height: 100vh !important; width: 240px !important; z-index: 15 !important; box-sizing: border-box; background: #404040 !important; }
+    .mdl-layout__header { position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; z-index: 20 !important; height: 64px !important; box-sizing: border-box; }
+    main.mdl-layout__content { left: 240px !important; top: 64px !important; width: calc(100% - 240px) !important; height: calc(100vh - 64px) !important; position: absolute !important; overflow-y: auto !important; overflow-x: hidden !important; z-index: 10 !important; margin: 0 !important; background: #202020 !important; }
+    .scanner-container { padding: 20px; color: #f0f0f0; }
+    .scanner-card { background: #303030 !important; border-radius: 5px !important; padding: 0 !important; margin: 20pt !important; box-shadow: 3px 3px 3px rgba(0,0,0,0.2) !important; width: calc(100% - 40pt) !important; }
+    .scanner-card .mdl-card__title { background-color: #3f51b5 !important; color: white !important; padding: 16px !important; }
+    .scanner-card .mdl-card__title-text { color: white !important; font-family: 'Titillium Web', sans-serif !important; font-size: 1.2rem !important; }
+    .scanner-content { padding: 20px; position: relative; }
+    #scannerCanvas { background: #000000 !important; border: 2px solid #3f51b5 !important; border-radius: 8px !important; display: block !important; margin: 0 auto !important; box-shadow: 0 0 20px rgba(63, 81, 181, 0.3) !important; }
+    .scanner-overlay { position: absolute; top: 20px; left: 20px; right: 20px; color: #f0f0f0; pointer-events: none; }
+    .scanner-info { background: rgba(0, 0, 0, 0.8); padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #3f51b5; }
+    .scanner-info h4 { margin: 0 0 8px 0; color: #8c9eff; font-size: 1.1rem; }
+    .scanner-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+    .stat-item { background: rgba(63, 81, 181, 0.1); padding: 12px; border-radius: 5px; border: 1px solid rgba(63, 81, 181, 0.3); }
+    .stat-label { font-size: 0.9rem; color: #c0c0c0; margin-bottom: 5px; }
+    .stat-value { font-size: 1.2rem; color: #8c9eff; font-weight: bold; font-family: 'JetBrains Mono', monospace; }
+    .detection-indicator { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; animation: pulse 2s infinite; }
+    .detected { background: #4caf50; }
+    .searching { background: #ff9800; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    .mdl-navigation__link { color: #c0c0c0 !important; text-overflow: ellipsis; overflow: hidden; padding-top: 5pt !important; padding-bottom: 5pt !important; display: flex; align-items: center; }
+    .mdl-navigation__link:hover { color: #404040 !important; }
+    .mdl-navigation__link .material-icons { margin-right: 16px; font-size: 20px; }
+    .topics-nav-title { text-transform: uppercase; color: #808080; font-size: 10pt; font-weight: 700; padding-left: 10pt; border-bottom: 1px dotted #505050; padding-top: 10pt; padding-bottom: 10pt; }
+    .sidebar-user-info { position: absolute; bottom: 0; width: 100%; border-top: 1px solid rgba(255,255,255,0.1); padding: 16px; box-sizing: border-box; }
+    .sidebar-user-info .email { font-size: 0.9em; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 16px; padding-bottom: 8px; color: #c0c0c0; }
+    .status-connected { color: #4caf50; }
+    .status-disconnected { color: #f44336; }
+  </style>
 </head>
 <body>
-    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
-    
-    <header class="mdl-layout__header">
-      <div class="mdl-layout__header-row">
-        <div class="mdl-layout__drawer-button">
-          <i class="material-icons">menu</i>
-        </div>
-        <span class="mdl-layout-title">ROSboard - Robot Scanner</span>
-        <div class="mdl-layout-spacer"></div>
-      </div>
-    </header>
-    
-        <div class="mdl-layout__drawer">
-      <span class="mdl-layout-title">menu</span> 
-      <nav id="topics-nav" class="mdl-navigation">
-        <div class="topics-nav-title">ROBOT 2</div>
-                <a class="mdl-navigation__link" href="/index.html">
-          <i class="material-icons">home</i> Dashboard
-        </a>
-                <a class="mdl-navigation__link" href="/camera.html">
-          <i class="material-icons">videocam</i> Camera
-        </a>
-                <a class="mdl-navigation__link" href="/odom.html">
-          <i class="material-icons">explore</i> Scanner
-        </a>
+  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
+    
+    <header class="mdl-layout__header">
+      <div class="mdl-layout__header-row">
+        <div class="mdl-layout__drawer-button">
+          <i class="material-icons">menu</i>
+        </div>
+        <span class="mdl-layout-title">ROSboard - Robot Scanner</span>
+        <div class="mdl-layout-spacer"></div>
+      </div>
+    </header>
+    
+    <div class="mdl-layout__drawer">
+      <span class="mdl-layout-title">menu</span> 
+      <nav id="topics-nav" class="mdl-navigation">
+        <div class="topics-nav-title">ROBOT 2</div>
+        <a class="mdl-navigation__link" href="/index.html">
+          <i class="material-icons">home</i> Dashboard
+        </a>
+        <a class="mdl-navigation__link" href="/camera.html">
+          <i class="material-icons">videocam</i> Camera
+        </a>
+        <a class="mdl-navigation__link" href="/odom.html">
+          <i class="material-icons">explore</i> Scanner
+        </a>
 
-        <div style="opacity:0.3;" id="topics-nav-unsupported"></div>
+        <div style="opacity:0.3;" id="topics-nav-unsupported"></div>
 
-        <div class="sidebar-user-info" id="user-links">
-          <div style="padding: 16px; text-align: center; color: #888;">
-            Loading user info...
-          </div>
-        </div>
-      </nav>
-    </div>
+        <div class="sidebar-user-info" id="user-links">
+          <div style="padding: 16px; text-align: center; color: #888;">
+            Loading user info...
+          </div>
+        </div>
+      </nav>
+    </div>
 
-    <main class="mdl-layout__content">
-      <div class="scanner-container">
-        <div class="scanner-card mdl-card mdl-shadow--2dp">
-          <div class="mdl-card__title">
-            <h2 class="mdl-card__title-text">Robot Detection Scanner</h2>
-          </div>
-          
-          <div class="scanner-content">
-            <div class="scanner-overlay">
-              <div class="scanner-info">
-                <h4>
-                  <span class="detection-indicator searching" id="statusIndicator"></span>
-                  <span id="statusText">Scanning for Robot...</span>
-                </h4>
-                <p>Monitoring /rtabmap/odom for robot position data</p>
-              </div>
-              
-              <div class="scanner-stats">
-                <div class="stat-item">
-                  <div class="stat-label">Connection Status</div>
-                  <div class="stat-value status-disconnected" id="connectionStatus">Disconnected</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-label">Last Position</div>
-                  <div class="stat-value" id="lastPosition">X: 0.00, Y: 0.00</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-label">Detection Count</div>
-                  <div class="stat-value" id="detectionCount">0</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-label">Last Update</div>
-                  <div class="stat-value" id="lastUpdate">--:--:--</div>
-                </div>
-              </div>
-            </div>
-            
-            <canvas id="scannerCanvas" width="800" height="600"></canvas>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
+    <main class="mdl-layout__content">
+      <div class="scanner-container">
+        <div class="scanner-card mdl-card mdl-shadow--2dp">
+          <div class="mdl-card__title">
+            <h2 class="mdl-card__title-text">Robot Detection Scanner</h2>
+          </div>
+          
+          <div class="scanner-content">
+            <div class="scanner-overlay">
+              <div class="scanner-info">
+                <h4>
+                  <span class="detection-indicator searching" id="statusIndicator"></span>
+                  <span id="statusText">Scanning for Robot...</span>
+                </h4>
+                <p>Monitoring /rtabmap/odom for robot position data</p>
+              </div>
+              
+              <div class="scanner-stats">
+                <div class="stat-item">
+                  <div class="stat-label">Connection Status</div>
+                  <div class="stat-value status-connected" id="connectionStatus">Connected</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">Last Position</div>
+                  <div class="stat-value" id="lastPosition">X: 0.00, Y: 0.00</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">Detection Count</div>
+                  <div class="stat-value" id="detectionCount">0</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">Last Update</div>
+                  <div class="stat-value" id="lastUpdate">--:--:--</div>
+                </div>
+              </div>
+            </div>
+            
+            <canvas id="scannerCanvas" width="800" height="600"></canvas>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
 
-  <div id="demo-toast-example" class="mdl-js-snackbar mdl-snackbar">
-    <div class="mdl-snackbar__text"></div>
-    <button class="mdl-snackbar__action" type="button"></button>
-   </div>
+  <div id="demo-toast-example" class="mdl-js-snackbar mdl-snackbar">
+    <div class="mdl-snackbar__text"></div>
+    <button class="mdl-snackbar__action" type="button"></button>
+   </div>
 
-  <!-- MOVED: WebSocketV1Transport import to bottom to avoid duplicate -->
-  <script type="text/javascript" src="js/transports/WebSocketV1Transport.js"></script>
+  <script>
+    // --- Session Loading and Sidebar Rendering ---
+    document.addEventListener("DOMContentLoaded", () => {
+      const userLinksContainer = document.getElementById("user-links");
 
-    <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const userLinksContainer = document.getElementById("user-links");
+      fetch('/api/get_session')
+        .then(response => {
+          if (!response.ok) {
+            window.location.href = '/login';
+            throw new Error('Not authenticated');
+          }
+          return response.json();
+        })
+        .then(user => {
+          let linksHtml = '';
+          
+          if (user.role === 'admin') {
+            linksHtml += `
+              <a class="mdl-navigation__link" href="/admin">
+                <i class="material-icons">admin_panel_settings</i> Admin Panel
+              </a>`;
+          }
+          linksHtml += `
+            <a class="mdl-navigation__link" href="/profile">
+              <i class="material-icons">person</i> Profile
+            </a>
+            <div class="email" title="${user.email}">${user.email}</div>
+            <a class="mdl-navigation__link" href="/logout">
+              <i class="material-icons">logout</i> Logout
+            </a>`;
+          userLinksContainer.innerHTML = linksHtml;
+          
+          if (typeof componentHandler !== 'undefined') {
+            componentHandler.upgradeElements(userLinksContainer);
+          }
+        })
+        .catch(err => {
+          if (err.message !== 'Not authenticated') {
+            console.error("Error fetching session:", err);
+          }
+        });
+    });
+  </script>
 
-      fetch('/api/get_session')
-        .then(response => {
-          if (!response.ok) {
-            // If API fails (e.g., 401 Not Authenticated), redirect to login
-            window.location.href = '/login';
-            throw new Error('Not authenticated');
-          }
-          return response.json();
-        })
-        .then(user => {
-          // User is authenticated, render sidebar links
-          let linksHtml = '';
-          
-          if (user.role === 'admin') {
-            linksHtml += `
-              <a class="mdl-navigation__link" href="/admin">
-                <i class="material-icons">admin_panel_settings</i> Admin Panel
-              </a>`;
-          }
-          linksHtml += `
-            <a class="mdl-navigation__link" href="/profile">
-              <i class="material-icons">person</i> Profile
-            </a>
-            <div class="email" title="${user.email}">${user.email}</div>
-            <a class="mdl-navigation__link" href="/logout">
-              <i class="material-icons">logout</i> Logout
-            </a>`;
-          userLinksContainer.innerHTML = linksHtml;
-          
-          // FIX: Upgrade newly inserted MDL elements
-          if (typeof componentHandler !== 'undefined') {
-            componentHandler.upgradeElements(userLinksContainer);
-          }
-        })
-        .catch(err => {
-          if (err.message !== 'Not authenticated') {
-            console.error("Error fetching session:", err);
-          }
-        });
-    });
-  </script>
+    <script>
+    let transport; 
+    let transportOptions; 
+    
+    // Scanner elements
+    const canvas = document.getElementById("scannerCanvas");
+    const ctx = canvas.getContext("2d");
+    const statusIndicator = document.getElementById("statusIndicator");
+    const statusText = document.getElementById("statusText");
+    const connectionStatus = document.getElementById("connectionStatus");
+    const lastPosition = document.getElementById("lastPosition");
+    const detectionCount = document.getElementById("detectionCount");
+    const lastUpdate = document.getElementById("lastUpdate");
+    
+    let detectionCounter = 0;
+    let lastDetectionTime = null;
 
-    <script>
-    let transport; // WebSocket transport instance
-    let transportOptions; // Options for reconnection
-    
-    // Scanner elements
-    const canvas = document.getElementById("scannerCanvas");
-    const ctx = canvas.getContext("2d");
-    const statusIndicator = document.getElementById("statusIndicator");
-    const statusText = document.getElementById("statusText");
-    const connectionStatus = document.getElementById("connectionStatus");
-    const lastPosition = document.getElementById("lastPosition");
-    const detectionCount = document.getElementById("detectionCount");
-    const lastUpdate = document.getElementById("lastUpdate");
-    
-    let detectionCounter = 0;
-    let lastDetectionTime = null;
-    
-    const TOPIC_ODOM = "/rtabmap/odom"; // The Odometry topic to subscribe to
+    // FIX: Using the /odom topic as a standard reference.
+    const TOPIC_ODOM = "/odom"; 
 
     function updateStatus(indicatorClass, text) {
         statusIndicator.className = 'detection-indicator ' + indicatorClass;
         statusText.textContent = text;
     }
 
-    function initScanner() {
-      // Initialize canvas and drawing functions
-      ctx.fillStyle = "#000000";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      drawScannerGrid();
-      drawCrosshair();
-      
-      updateStatus("searching", "Scanning for Robot...");
-    }
+    function initScanner() {
+      // Initialize canvas and drawing functions
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      drawScannerGrid();
+      drawCrosshair();
+      
+      updateStatus("searching", "Scanning for Robot...");
+      connectionStatus.textContent = "Connecting...";
+    }
+    
+    // ... (Drawing functions are assumed complete and correct) ...
 
-    function drawScannerGrid() {
-      ctx.strokeStyle = "#3f51b5";
-      ctx.lineWidth = 1;
-      ctx.globalAlpha = 0.3;
-      
-      for (let x = 0; x <= canvas.width; x += 50) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
-      }
-      
-      for (let y = 0; y <= canvas.height; y += 50) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
-      }
-      
-      ctx.globalAlpha = 1.0;
-    }
+    function drawScannerGrid() {
+      ctx.strokeStyle = "#3f51b5"; ctx.lineWidth = 1; ctx.globalAlpha = 0.3;
+      for (let x = 0; x <= canvas.width; x += 50) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+      for (let y = 0; y <= canvas.height; y += 50) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+      ctx.globalAlpha = 1.0;
+    }
 
-    function drawCrosshair() {
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
-      
-      ctx.strokeStyle = "#8c9eff";
-      ctx.lineWidth = 2;
-      ctx.globalAlpha = 0.5;
-      
-      ctx.beginPath();
-      ctx.moveTo(centerX - 20, centerY);
-      ctx.lineTo(centerX + 20, centerY);
-      ctx.moveTo(centerX, centerY - 20);
-      ctx.lineTo(centerX, centerY + 20);
-      ctx.stroke();
-      
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, 80, 0, 2 * Math.PI);
-      ctx.stroke();
-      
-      ctx.globalAlpha = 1.0;
-    }
+    function drawCrosshair() {
+      const centerX = canvas.width / 2; const centerY = canvas.height / 2;
+      ctx.strokeStyle = "#8c9eff"; ctx.lineWidth = 2; ctx.globalAlpha = 0.5;
+      ctx.beginPath(); ctx.moveTo(centerX - 20, centerY); ctx.lineTo(centerX + 20, centerY);
+      ctx.moveTo(centerX, centerY - 20); ctx.lineTo(centerX, centerY + 20); ctx.stroke();
+      ctx.beginPath(); ctx.arc(centerX, centerY, 80, 0, 2 * Math.PI); ctx.stroke();
+      ctx.globalAlpha = 1.0;
+    }
 
-    function drawRobotPosition(x, y, theta) {
-        // Clear canvas with dark background
+    function drawRobotPosition(x, y, theta) {
         ctx.fillStyle = "#000000";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         drawScannerGrid();
         drawCrosshair();
 
-        // Define constants for drawing
-        const scale = 40; // Pixels per meter (adjust as needed)
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        
-        // Convert ROS coordinates (X increases right, Y increases forward) to Canvas coordinates
-        // Assuming robot starts at (0,0) in the center of the canvas
-        const canvasX = x * scale + centerX;
-        const canvasY = -y * scale + centerY; // Invert Y for canvas drawing
+        const scale = 40; 
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        
+        const canvasX = x * scale + centerX;
+        const canvasY = -y * scale + centerY; 
 
-        // Draw detection/proximity halo
-        ctx.fillStyle = "rgba(76, 175, 80, 0.3)";
-        ctx.beginPath();
-        ctx.arc(canvasX, canvasY, 60, 0, 2 * Math.PI);
-        ctx.fill();
-        
-        // Draw robot position circle
-        ctx.fillStyle = "#4caf50";
-        ctx.beginPath();
-        ctx.arc(canvasX, canvasY, 8, 0, 2 * Math.PI);
-        ctx.fill();
-        
-        // Draw robot direction indicator (Vector showing theta)
-        const arrowLength = 20;
-        
-        // Calculate end point of arrow based on orientation (theta)
-        // Note: ROS typically uses Yaw=0 along the X-axis (right in your visual)
-        const arrowX = canvasX + arrowLength * Math.cos(theta);
-        const arrowY = canvasY - arrowLength * Math.sin(theta); // Subtract due to canvas Y-axis inversion
-        
-        ctx.strokeStyle = "#4caf50";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(canvasX, canvasY);
-        ctx.lineTo(arrowX, arrowY);
-        ctx.stroke();
-        
-        // Draw coordinates text
-        ctx.fillStyle = "#8c9eff";
-        ctx.font = "12px JetBrains Mono";
-        ctx.fillText(`X: ${x.toFixed(2)}, Y: ${y.toFixed(2)}`, canvasX + 15, canvasY - 15);
-        
-        // Update UI stats
-        detectionCounter++;
-        lastDetectionTime = new Date();
-        
-        lastPosition.textContent = `X: ${x.toFixed(2)}, Y: ${y.toFixed(2)} | Yaw: ${(theta * 180 / Math.PI).toFixed(1)}°`;
-        detectionCount.textContent = detectionCounter;
-        lastUpdate.textContent = lastDetectionTime.toLocaleTimeString();
-        
-        updateStatus("detected", `Robot Detected! Position: (${x.toFixed(2)}, ${y.toFixed(2)})`);
-    }
+        ctx.fillStyle = "rgba(76, 175, 80, 0.3)";
+        ctx.beginPath(); ctx.arc(canvasX, canvasY, 60, 0, 2 * Math.PI); ctx.fill();
+        
+        ctx.fillStyle = "#4caf50";
+        ctx.beginPath(); ctx.arc(canvasX, canvasY, 8, 0, 2 * Math.PI); ctx.fill();
+        
+        const arrowLength = 20;
+        const arrowX = canvasX + arrowLength * Math.cos(theta);
+        const arrowY = canvasY - arrowLength * Math.sin(theta); 
+        
+        ctx.strokeStyle = "#4caf50"; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(canvasX, canvasY); ctx.lineTo(arrowX, arrowY); ctx.stroke();
+        
+        ctx.fillStyle = "#8c9eff"; ctx.font = "12px JetBrains Mono";
+        ctx.fillText(\`X: \${x.toFixed(2)}, Y: \${y.toFixed(2)}\`, canvasX + 15, canvasY - 15);
+        
+        detectionCounter++;
+        lastDetectionTime = new Date();
+        
+        lastPosition.textContent = \`X: \${x.toFixed(2)}, Y: \${y.toFixed(2)} | Yaw: \${(theta * 180 / Math.PI).toFixed(1)}°\`;
+        detectionCount.textContent = detectionCounter;
+        lastUpdate.textContent = lastDetectionTime.toLocaleTimeString();
+        
+        updateStatus("detected", \`Robot Detected! Position: (\${x.toFixed(2)}, \${y.toFixed(2)})\`);
+    }
 
     // --- WebSocket Callbacks ---
     function onOpen() {
@@ -546,7 +294,7 @@
         
         // Automatic subscription to Odometry topic
         transport.subscribe({ topicName: TOPIC_ODOM });
-        console.log(`✅ Subscribed to ${TOPIC_ODOM}`);
+        console.log(\`Subscribed to \${TOPIC_ODOM}\`);
     }
 
     function onClose() {
@@ -567,631 +315,10 @@
 
     function onMsg(msg) {
         if (msg._topic_name === TOPIC_ODOM) {
-            try {
-                // nav_msgs/Odometry structure: pose -> pose -> position/orientation
-                const position = msg.pose.pose.position;
-                const orientation = msg.pose.pose.orientation;
-
-                // Convert quaternion to Euler angles to get yaw (theta)
-                const siny_cosp = 2 * (orientation.w * orientation.z + orientation.x * orientation.y);
-                const cosy_cosp = 1 - 2 * (orientation.y * orientation.y + orientation.z * orientation.z);
-                const theta = Math.atan2(siny_cosp, cosy_cosp); 
-
-                drawRobotPosition(position.x, position.y, theta);
-            } catch (error) {
-                console.error("❌ Error processing odometry data:", error);
-                console.log("Raw message:", msg);
-            }
-        }
-    }
-    
-    // These must exist globally for the transport script
-    function onTopics(topics) {}
-    function onSystem(system) {}
-
-    // Main function to initiate the connection
-    function startRosboard() {
-        initScanner(); // Draw initial canvas grid
-        
-        // FIXED: Use the correct WebSocket path for your setup
-        // Based on your server logs, try these possible paths:
-        const possiblePaths = [
-            "/rosboard/v1",
-            "/v1",
-            "/ws",
-            ""
-        ];
-        
-        let currentPathIndex = 0;
-        
-        function tryConnect() {
-            const backendPath = possiblePaths[currentPathIndex];
-            console.log(`🔗 Attempting connection to: ${backendPath || '/ (default)'}`);
-            
-            transportOptions = {
-                path: backendPath,
-                onOpen: onOpen,
-                onMsg: onMsg,
-                onClose: onClose,
-                onError: onError,
-                onTopics: onTopics,
-                onSystem: onSystem
-            };
-            
-            transport = new WebSocketV1Transport(transportOptions);
-            transport.connect();
-            
-            // If connection fails, try next path after 5 seconds
-            setTimeout(() => {
-                if (connectionStatus.textContent === "Disconnected") {
-                    currentPathIndex = (currentPathIndex + 1) % possiblePaths.length;
-                    console.log(`🔄 Trying next connection path...`);
-                    tryConnect();
-                }
-            }, 5000);
-        }
-        
-        tryConnect();
-    }
-
-    // Start the script after the page loads
-    window.addEventListener("load", startRosboard);
-  </script>
-</body>
-</html>et" type="text/css">
-
-  <script type="text/javascript" src="js/jquery-3.1.0.min.js"></script>
-  <script type="text/javascript" src="js/json5.min.js"></script>
-  <script type="text/javascript" src="js/uPlot.iife.min.js"></script>
-  <script type="text/javascript" src="js/jquery.transit.min.js"></script>
-  <script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
-  <script type="text/javascript" src="js/eventemitter2.min.js"></script>
-  <script type="text/javascript" src="js/import-helper.js"></script>
-  <script type="text/javascript" src="js/material.min.js" defer></script>
-  <script type="text/javascript" src="js/leaflet.js"></script>      
-  <script type="text/javascript" src="js/gl-matrix.js"></script>
-  <script type="text/javascript" src="js/litegl.min.js"></script>
-  <!-- REMOVED DUPLICATE IMPORT: <script type="text/javascript" src="js/transports/WebSocketV1Transport.js"></script> -->
-
-  <style>
-    /* === STYLING (Unmodified, as requested) === */
-    html, body {
-      margin: 0 !important;
-      padding: 0 !important;
-      height: 100vh !important;
-      width: 100% !important;
-      overflow: hidden !important;
-      background: #202020 !important;
-    }
-    body {
-      position: relative !important;
-      font-family: 'Titillium Web', sans-serif !important;
-      color: #f0f0f0 !important;
-    }
-
-    /* Rest of your CSS styles for layout, scanner, and navigation */
-
-    .mdl-layout__container {
-      position: relative !important;
-      height: 100vh !important;
-      width: 100% !important;
-    }
-
-    .mdl-layout__drawer {
-      position: fixed !important;
-      top: 0 !important;
-      height: 100vh !important;
-      width: 240px !important;
-      z-index: 15 !important;
-      box-sizing: border-box;
-      background: #404040 !important;
-    }
-    
-    .mdl-layout__header {
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      width: 100% !important;
-      z-index: 20 !important;
-      height: 64px !important;
-      box-sizing: border-box;
-    }
-
-    main.mdl-layout__content {
-      left: 240px !important;
-      top: 64px !important;
-      width: calc(100% - 240px) !important;
-      height: calc(100vh - 64px) !important;
-      position: absolute !important;
-      overflow-y: auto !important;
-      overflow-x: hidden !important;
-      z-index: 10 !important;
-      margin: 0 !important;
-      background: #202020 !important;
-    }
-
-    .scanner-container {
-      padding: 20px;
-      color: #f0f0f0;
-    }
-
-    .scanner-card {
-      background: #303030 !important;
-      border-radius: 5px !important;
-      padding: 0 !important;
-      margin: 20pt !important;
-      box-shadow: 3px 3px 3px rgba(0,0,0,0.2) !important;
-      width: calc(100% - 40pt) !important;
-    }
-
-    .scanner-card .mdl-card__title {
-      background-color: #3f51b5 !important;
-      color: white !important;
-      padding: 16px !important;
-    }
-
-    .scanner-card .mdl-card__title-text {
-      color: white !important;
-      font-family: 'Titillium Web', sans-serif !important;
-      font-size: 1.2rem !important;
-    }
-
-    .scanner-content {
-      padding: 20px;
-      position: relative;
-    }
-
-    #scannerCanvas {
-      background: #000000 !important;
-      border: 2px solid #3f51b5 !important;
-      border-radius: 8px !important;
-      display: block !important;
-      margin: 0 auto !important;
-      box-shadow: 0 0 20px rgba(63, 81, 181, 0.3) !important;
-    }
-
-    .scanner-overlay {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      right: 20px;
-      color: #f0f0f0;
-      pointer-events: none;
-    }
-
-    .scanner-info {
-      background: rgba(0, 0, 0, 0.8);
-      padding: 15px;
-      border-radius: 5px;
-      margin-bottom: 15px;
-      border-left: 4px solid #3f51b5;
-    }
-
-    .scanner-info h4 {
-      margin: 0 0 8px 0;
-      color: #8c9eff;
-      font-size: 1.1rem;
-    }
-
-    .scanner-stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-top: 15px;
-    }
-
-    .stat-item {
-      background: rgba(63, 81, 181, 0.1);
-      padding: 12px;
-      border-radius: 5px;
-      border: 1px solid rgba(63, 81, 181, 0.3);
-    }
-
-    .stat-label {
-      font-size: 0.9rem;
-      color: #c0c0c0;
-      margin-bottom: 5px;
-    }
-
-    .stat-value {
-      font-size: 1.2rem;
-      color: #8c9eff;
-      font-weight: bold;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .detection-indicator {
-      display: inline-block;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      margin-right: 8px;
-      animation: pulse 2s infinite;
-    }
-
-    .detected {
-      background: #4caf50;
-    }
-
-    .searching {
-      background: #ff9800;
-    }
-
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.5; }
-      100% { opacity: 1; }
-    }
-
-    .mdl-navigation__link {
-      color: #c0c0c0 !important;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      padding-top: 5pt !important;
-      padding-bottom: 5pt !important;
-      display: flex;
-      align-items: center;
-    }
-
-    .mdl-navigation__link:hover {
-      color: #404040 !important;
-    }
-
-    .mdl-navigation__link .material-icons {
-      margin-right: 16px;
-      font-size: 20px;
-    }
-
-    .topics-nav-title {
-      text-transform: uppercase;
-      color: #808080;
-      font-size: 10pt;
-      font-weight: 700;
-      padding-left: 10pt;
-      border-bottom: 1px dotted #505050;
-      padding-top: 10pt;
-      padding-bottom: 10pt;
-    }
-
-    .sidebar-user-info {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      padding: 16px;
-      box-sizing: border-box;
-    }
-
-    .sidebar-user-info .email {
-      font-size: 0.9em;
-      opacity: 0.7;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      padding-left: 16px;
-      padding-bottom: 8px;
-      color: #c0c0c0;
-    }
-
-    .status-connected {
-      color: #4caf50;
-    }
-
-    .status-disconnected {
-      color: #f44336;
-    }
-  </style>
-</head>
-<body>
-    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
-    
-    <header class="mdl-layout__header">
-      <div class="mdl-layout__header-row">
-        <div class="mdl-layout__drawer-button">
-          <i class="material-icons">menu</i>
-        </div>
-        <span class="mdl-layout-title">ROSboard - Robot Scanner</span>
-        <div class="mdl-layout-spacer"></div>
-      </div>
-    </header>
-    
-        <div class="mdl-layout__drawer">
-      <span class="mdl-layout-title">menu</span> 
-      <nav id="topics-nav" class="mdl-navigation">
-        <div class="topics-nav-title">ROBOT 2</div>
-                <a class="mdl-navigation__link" href="/index.html">
-          <i class="material-icons">home</i> Dashboard
-        </a>
-                <a class="mdl-navigation__link" href="/camera.html">
-          <i class="material-icons">videocam</i> Camera
-        </a>
-                <a class="mdl-navigation__link" href="/odom.html">
-          <i class="material-icons">explore</i> Scanner
-        </a>
-
-        <div style="opacity:0.3;" id="topics-nav-unsupported"></div>
-
-        <div class="sidebar-user-info" id="user-links">
-          <div style="padding: 16px; text-align: center; color: #888;">
-            Loading user info...
-          </div>
-        </div>
-      </nav>
-    </div>
-
-    <main class="mdl-layout__content">
-      <div class="scanner-container">
-        <div class="scanner-card mdl-card mdl-shadow--2dp">
-          <div class="mdl-card__title">
-            <h2 class="mdl-card__title-text">Robot Detection Scanner</h2>
-          </div>
-          
-          <div class="scanner-content">
-            <div class="scanner-overlay">
-              <div class="scanner-info">
-                <h4>
-                  <span class="detection-indicator searching" id="statusIndicator"></span>
-                  <span id="statusText">Scanning for Robot...</span>
-                </h4>
-                <p>Monitoring /rtabmap/odom for robot position data</p>
-              </div>
-              
-              <div class="scanner-stats">
-                <div class="stat-item">
-                  <div class="stat-label">Connection Status</div>
-                  <div class="stat-value status-connected" id="connectionStatus">Connected</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-label">Last Position</div>
-                  <div class="stat-value" id="lastPosition">X: 0.00, Y: 0.00</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-label">Detection Count</div>
-                  <div class="stat-value" id="detectionCount">0</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-label">Last Update</div>
-                  <div class="stat-value" id="lastUpdate">--:--:--</div>
-                </div>
-              </div>
-            </div>
-            
-            <canvas id="scannerCanvas" width="800" height="600"></canvas>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
-
-  <div id="demo-toast-example" class="mdl-js-snackbar mdl-snackbar">
-    <div class="mdl-snackbar__text"></div>
-    <button class="mdl-snackbar__action" type="button"></button>
-   </div>
-
-  <!-- MOVED: WebSocketV1Transport import to bottom to avoid duplicate -->
-  <script type="text/javascript" src="js/transports/WebSocketV1Transport.js"></script>
-
-    <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const userLinksContainer = document.getElementById("user-links");
-
-      fetch('/api/get_session')
-        .then(response => {
-          if (!response.ok) {
-            // If API fails (e.g., 401 Not Authenticated), redirect to login
-            window.location.href = '/login';
-            throw new Error('Not authenticated');
-          }
-          return response.json();
-        })
-        .then(user => {
-          // User is authenticated, render sidebar links
-          let linksHtml = '';
-          
-          if (user.role === 'admin') {
-            linksHtml += `
-              <a class="mdl-navigation__link" href="/admin">
-                <i class="material-icons">admin_panel_settings</i> Admin Panel
-              </a>`;
-          }
-          linksHtml += `
-            <a class="mdl-navigation__link" href="/profile">
-              <i class="material-icons">person</i> Profile
-            </a>
-            <div class="email" title="${user.email}">${user.email}</div>
-            <a class="mdl-navigation__link" href="/logout">
-              <i class="material-icons">logout</i> Logout
-            </a>`;
-          userLinksContainer.innerHTML = linksHtml;
-          
-          // FIX: Upgrade newly inserted MDL elements
-          if (typeof componentHandler !== 'undefined') {
-            componentHandler.upgradeElements(userLinksContainer);
-          }
-        })
-        .catch(err => {
-          if (err.message !== 'Not authenticated') {
-            console.error("Error fetching session:", err);
-          }
-        });
-    });
-  </script>
-
-    <script>
-    let transport; // WebSocket transport instance
-    let transportOptions; // Options for reconnection
-    
-    // Scanner elements
-    const canvas = document.getElementById("scannerCanvas");
-    const ctx = canvas.getContext("2d");
-    const statusIndicator = document.getElementById("statusIndicator");
-    const statusText = document.getElementById("statusText");
-    const connectionStatus = document.getElementById("connectionStatus");
-    const lastPosition = document.getElementById("lastPosition");
-    const detectionCount = document.getElementById("detectionCount");
-    const lastUpdate = document.getElementById("lastUpdate");
-    
-    let detectionCounter = 0;
-    let lastDetectionTime = null;
-    
-    const TOPIC_ODOM = "/rtabmap/odom"; // The Odometry topic to subscribe to
-
-    function updateStatus(indicatorClass, text) {
-        statusIndicator.className = 'detection-indicator ' + indicatorClass;
-        statusText.textContent = text;
-    }
-
-    function initScanner() {
-      // Initialize canvas and drawing functions
-      ctx.fillStyle = "#000000";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      drawScannerGrid();
-      drawCrosshair();
-      
-      updateStatus("searching", "Scanning for Robot...");
-    }
-
-    function drawScannerGrid() {
-      ctx.strokeStyle = "#3f51b5";
-      ctx.lineWidth = 1;
-      ctx.globalAlpha = 0.3;
-      
-      for (let x = 0; x <= canvas.width; x += 50) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
-      }
-      
-      for (let y = 0; y <= canvas.height; y += 50) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
-      }
-      
-      ctx.globalAlpha = 1.0;
-    }
-
-    function drawCrosshair() {
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
-      
-      ctx.strokeStyle = "#8c9eff";
-      ctx.lineWidth = 2;
-      ctx.globalAlpha = 0.5;
-      
-      ctx.beginPath();
-      ctx.moveTo(centerX - 20, centerY);
-      ctx.lineTo(centerX + 20, centerY);
-      ctx.moveTo(centerX, centerY - 20);
-      ctx.lineTo(centerX, centerY + 20);
-      ctx.stroke();
-      
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, 80, 0, 2 * Math.PI);
-      ctx.stroke();
-      
-      ctx.globalAlpha = 1.0;
-    }
-
-    // FIX: Completed Odometry drawing logic
-    function drawRobotPosition(x, y, theta) {
-        // Clear canvas with dark background
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        drawScannerGrid();
-        drawCrosshair();
-
-        // Define constants for drawing
-        const scale = 40; // Pixels per meter (adjust as needed)
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        
-        // Convert ROS coordinates (X increases right, Y increases forward) to Canvas coordinates
-        // Assuming robot starts at (0,0) in the center of the canvas
-        const canvasX = x * scale + centerX;
-        const canvasY = -y * scale + centerY; // Invert Y for canvas drawing
-
-        // Draw detection/proximity halo
-        ctx.fillStyle = "rgba(76, 175, 80, 0.3)";
-        ctx.beginPath();
-        ctx.arc(canvasX, canvasY, 60, 0, 2 * Math.PI);
-        ctx.fill();
-        
-        // Draw robot position circle
-        ctx.fillStyle = "#4caf50";
-        ctx.beginPath();
-        ctx.arc(canvasX, canvasY, 8, 0, 2 * Math.PI);
-        ctx.fill();
-        
-        // Draw robot direction indicator (Vector showing theta)
-        const arrowLength = 20;
-        
-        // Calculate end point of arrow based on orientation (theta)
-        // Note: ROS typically uses Yaw=0 along the X-axis (right in your visual)
-        const arrowX = canvasX + arrowLength * Math.cos(theta);
-        const arrowY = canvasY - arrowLength * Math.sin(theta); // Subtract due to canvas Y-axis inversion
-        
-        ctx.strokeStyle = "#4caf50";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(canvasX, canvasY);
-        ctx.lineTo(arrowX, arrowY);
-        ctx.stroke();
-        
-        // Draw coordinates text
-        ctx.fillStyle = "#8c9eff";
-        ctx.font = "12px JetBrains Mono";
-        ctx.fillText(`X: ${x.toFixed(2)}, Y: ${y.toFixed(2)}`, canvasX + 15, canvasY - 15);
-        
-        // Update UI stats
-        detectionCounter++;
-        lastDetectionTime = new Date();
-        
-        lastPosition.textContent = `X: ${x.toFixed(2)}, Y: ${y.toFixed(2)} | Yaw: ${(theta * 180 / Math.PI).toFixed(1)}°`;
-        detectionCount.textContent = detectionCounter;
-        lastUpdate.textContent = lastDetectionTime.toLocaleTimeString();
-        
-        updateStatus("detected", `Robot Detected! Position: (${x.toFixed(2)}, ${y.toFixed(2)})`);
-    }
-
-    // --- WebSocket Callbacks ---
-    function onOpen() {
-        connectionStatus.textContent = "Connected";
-        connectionStatus.classList.remove('status-disconnected');
-        connectionStatus.classList.add('status-connected');
-        
-        // Automatic subscription to Odometry topic
-        transport.subscribe({ topicName: TOPIC_ODOM });
-        console.log(`Subscribed to ${TOPIC_ODOM}`);
-    }
-
-    function onClose() {
-        connectionStatus.textContent = "Disconnected";
-        connectionStatus.classList.remove('status-connected');
-        connectionStatus.classList.add('status-disconnected');
-        updateStatus("searching", "Connection Lost. Reconnecting...");
-        
-        setTimeout(() => {
-            transport = new WebSocketV1Transport(transportOptions);
-            transport.connect();
-        }, 3000);
-    }
-
-    function onError(error) {
-        console.error("WebSocket Error:", error);
-    }
-
-    function onMsg(msg) {
-        if (msg._topic_name === TOPIC_ODOM) {
-            // nav_msgs/Odometry structure: pose -> pose -> position/orientation
             const position = msg.pose.pose.position;
             const orientation = msg.pose.pose.orientation;
 
-            // Use quaternionToEuler (or similar) from gl-matrix or equivalent library
-            // Since you included gl-matrix, we'll assume a utility function is available
-            // For simplicity, we'll use a direct calculation for Yaw (theta)
+            // Simple Yaw calculation from Quaternion (assuming flat 2D plane)
             const siny_cosp = 2 * (orientation.w * orientation.z + orientation.x * orientation.y);
             const cosy_cosp = 1 - 2 * (orientation.y * orientation.y + orientation.z * orientation.z);
             const theta = Math.atan2(siny_cosp, cosy_cosp); 
@@ -1200,13 +327,12 @@
         }
     }
     
-    // These must exist globally for the transport script
     function onTopics(topics) {}
     function onSystem(system) {}
 
     // Main function to initiate the connection
     function startRosboard() {
-        initScanner(); // Draw initial canvas grid
+        initScanner(); 
         
         const backendPath = "/rosboard/v1";
         
@@ -1225,9 +351,8 @@
     }
 
 
-    // Start the script after the page loads
-    window.addEventListener("load", startRosboard);
-  </script>
+    // Start the script after the page loads
+    window.addEventListener("load", startRosboard);
+  </script>
 </body>
 </html>
-
