@@ -124,17 +124,22 @@ def is_port_in_use(port):
 # ### MODIFIED (STABILIZED) ### - Combined Publisher Spawner
 #
 def run_publisher_nodes():
-    # ... (omitted setup)
+    if not os.environ.get("ROS_DISTRO"):
+        print("[Publishers] ⚠️ ROS environment not sourced, skipping node spawn.")
+        return
+    
+    # 🌟 CRITICAL FIX: Add this line back!
+    env = os.environ.copy() 
 
     # --- 1. Launch the Camera Node ---
     print("[Camera Node] 🚀 Launching Camera Publisher...")
-    # ✅ UNCOMMENT THIS:
     camera_cmd = ["rosrun", "usb_cam", "usb_cam_node"] 
     
     try:
-        subprocess.Popen(camera_cmd, env=env)
+        subprocess.Popen(camera_cmd, env=env) # Now 'env' is defined
         print("[Camera Node] ✅ Camera node started.")
     except Exception as e:
+        # ... (rest of the block)
         print(f"[Camera Node] ❌ Failed to start camera node. Error: {e}")
 
     # --- 2. Launch the Battery Monitor Node ---
@@ -147,7 +152,7 @@ def run_publisher_nodes():
         print("[Battery Node] ✅ Battery monitor started.")
     except Exception as e:
         print(f"[Battery Node] ❌ Failed to start battery monitor. Error: {e}")
-        
+
 #
 # ------------------------------------------------
 #
@@ -253,7 +258,7 @@ async def rosboard_proxy(request):
                 return response
                 
         except Exception as e:
-            print(f"[RosB-oard Proxy] ❌ HTTP backend connection failed: {e}")
+            print(f"[Rosboard Proxy] ❌ HTTP backend connection failed: {e}")
             return web.Response(text="Rosboard backend is not reachable.", status=502)
 
 # ---------- Login (Unmodified) ----------
