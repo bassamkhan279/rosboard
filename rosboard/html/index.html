@@ -14,7 +14,9 @@
   <script src="js/material.min.js" defer></script>
 
   <style>
-    /* Simplified CSS to fix the issues */
+    /* --- STREAMLINED CSS FIXES FOR FIXED DRAWER --- */
+    
+    /* Global Reset */
     html, body {
         overflow: hidden !important;
         margin: 0 !important;
@@ -28,78 +30,53 @@
         width: 100% !important;
     }
     
+    /* 1. DRAWER STYLES */
     .mdl-layout__drawer {
-        transform: translateX(0) !important;
-        visibility: visible !important;
-        z-index: 5 !important;
+        /* Remove transform/visibility overrides and rely on MDL */
+        position: fixed !important; 
+        top: 0 !important;
+        height: 100vh !important;
+        width: 240px !important; 
+        z-index: 15 !important;
+        background: #404040 !important; /* Dark Theme */
+        box-sizing: border-box !important;
+        /* Ensure it's not hidden on desktop: MDL should handle this, 
+           but some fixed-header issues require this old MDL workaround */
+        transform: translateX(0) !important; 
     }
     
+    /* 2. HEADER STYLES */
+    .mdl-layout__header {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 64px !important;
+        z-index: 20 !important;
+    }
+
+    /* 3. MAIN CONTENT PUSH */
+    /* This style ensures content starts *after* the fixed 240px drawer and *below* the 64px header */
     .mdl-layout__content {
-        margin-left: 240px !important;
+        margin-left: 240px !important; /* Push content past the drawer */
+        margin-top: 64px !important; /* Start below the header */
         width: calc(100% - 240px) !important;
         height: calc(100vh - 64px) !important;
-        margin-top: 64px !important;
-        overflow: hidden !important;
+        
+        position: relative !important; /* Changed from 'absolute' for better scrolling context */
+        overflow-y: auto !important; 
+        overflow-x: hidden !important;
     }
     
-    .page-content {
-        padding: 0 !important;
-        height: 100% !important;
-        display: flex !important;
-        flex-direction: column !important;
-    }
-    
-    .welcome-card {
-        width: 100% !important;
-        height: 100% !important;
-        margin: 0 !important;
-        display: flex !important;
-        flex-direction: column !important;
-    }
-    
-    .mdl-card__title {
-        flex-shrink: 0 !important;
-        background-color: #3f51b5 !important;
-        color: white !important;
-    }
-    
-    .mdl-card__media {
-        flex-grow: 1 !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        overflow: hidden !important;
-        background-color: #000 !important;
-    }
-    
-    .mdl-card__media img {
-        width: 100% !important;
-        height: 100% !important;
-        object-fit: contain !important;
-    }
-    
-    .mdl-card__supporting-text {
-        display: none !important;
-    }
-    
-    .sidebar-user-info {
-        position: absolute !important;
-        bottom: 0 !important;
-        width: 100% !important;
-        border-top: 1px solid rgba(255,255,255,0.1) !important;
-        padding: 16px !important;
-        box-sizing: border-box !important;
-    }
-    
-    .sidebar-user-info .email {
-        font-size: 0.9em !important;
-        opacity: 0.7 !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        padding-left: 16px !important;
-        padding-bottom: 8px !important;
-    }
+    /* --- WELCOME CARD STYLES (Kept for visual integrity) --- */
+    .page-content { padding: 0 !important; height: 100% !important; display: flex !important; flex-direction: column !important; }
+    .welcome-card { width: 100% !important; height: 100% !important; margin: 0 !important; display: flex !important; flex-direction: column !important; }
+    .mdl-card__title { flex-shrink: 0 !important; background-color: #3f51b5 !important; color: white !important; }
+    .mdl-card__media { flex-grow: 1 !important; display: flex !important; justify-content: center !important; align-items: center !important; overflow: hidden !important; background-color: #000 !important; }
+    .mdl-card__media img { width: 100% !important; height: 100% !important; object-fit: contain !important; }
+    .mdl-card__supporting-text { display: none !important; }
+    .sidebar-user-info { position: absolute !important; bottom: 0 !important; width: 100% !important; border-top: 1px solid rgba(255,255,255,0.1) !important; padding: 16px !important; box-sizing: border-box !important; }
+    .sidebar-user-info .email { font-size: 0.9em !important; opacity: 0.7 !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; padding-left: 16px !important; padding-bottom: 8px !important; }
   </style>
 </head>
 <body>
@@ -151,7 +128,7 @@
           </div>
           
           <div class="mdl-card__media">
-            <img src="images/oil-palm.jpeg" alt="Oil Palm Harvesting Robot">
+            <img src="/rosboard/html/images/oil-palm.jpeg" alt="Autonomous Oil Palm Harvesting Robot">
           </div>
           
           <div class="mdl-card__supporting-text">
