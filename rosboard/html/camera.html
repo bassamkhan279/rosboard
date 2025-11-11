@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>ROSBoard Camera</title>
+  <title>Autonomous Oil Palm Harvesting Robot System Camera</title>
   
   <link rel="stylesheet" href="css/material.blue_grey-indigo.min.css">
   <link href="css/material-icons.css" rel="stylesheet"> 
@@ -94,9 +94,9 @@
           </div>
           
           <div class="ros-widget" 
-              data-widget="camera" 
-              data-topic="/camera/rgb/image_color/compressed"
-              data-topic-type="sensor_msgs/CompressedImage">
+                data-widget="camera" 
+                data-topic="/camera/rgb/image_color/compressed"
+                data-topic-type="sensor_msgs/Image">
               
             <div class="ros-widget-content">
                 <img id="camera-image" style="width: 100%; height: auto;" src="" alt="ROS Camera Feed" />
@@ -184,14 +184,14 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelector("#connection-status i").textContent = "power";
     
     transport.subscribe({
-      topicName: "/camera/rgb/image_color/compressed"
-    });
-    console.log("📷 Subscribed to camera topic");
+      topicName: "/camera/rgb/image_color/compressed"
+    });
+    console.log("📷 Subscribed to camera topic");
 
-    transport.subscribe({
-      topicName: "/battery_percentage"
-    });
-    console.log("🔋 Subscribed to battery topic: /battery_percentage");
+    transport.subscribe({
+      topicName: "/battery_percentage"
+    });
+    console.log("🔋 Subscribed to battery topic: /battery_percentage");
   }
 
   function onClose() {
@@ -221,21 +221,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (topicName === "/battery_percentage") {
-      if (msg.data !== undefined) {
-        const percent = Math.round(msg.data); 
-        const batteryFill = document.getElementById("battery-fill");
-        const batteryText = document.getElementById("battery-text");
+        // 🌟 FIX: The node publishes a Float32, which comes as a simple 'data' field in ROSBoard
+        if (msg.data !== undefined) {
+            const percent = Math.round(msg.data); // The Float32 percentage value
+            const batteryFill = document.getElementById("battery-fill");
+            const batteryText = document.getElementById("battery-text");
 
-        batteryFill.style.width = `${percent}%`;
+            batteryFill.style.width = `${percent}%`;
 
-        let color = "#4caf50";
-        if (percent < 50) color = "#ffeb3b";
-        if (percent < 20) color = "#f44336";
-        batteryFill.style.backgroundColor = color;
+            let color = "#4caf50";
+            if (percent < 50) color = "#ffeb3b";
+            if (percent < 20) color = "#f44336";
+            batteryFill.style.backgroundColor = color;
 
-        batteryText.textContent = `${percent}%`;
-      }
-    }
+            batteryText.textContent = `${percent}%`;
+        }
+    }
   }
 
   function onTopics(topics) {}
