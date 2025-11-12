@@ -1,123 +1,123 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>Autonomous Oil Palm Harvesting Robot System Camera</title>
-  
-  <link rel="stylesheet" href="css/material.blue_grey-indigo.min.css">
-  <link href="css/material-icons.css" rel="stylesheet"> 
-  <link rel="stylesheet" href="css/rosboard.css">
-  <link rel="stylesheet" href="css/uPlot.min.css">
-  <link rel="stylesheet" href="css/leaflet.css">
-  <link href="css/index.css" media="all" rel="stylesheet" type="text/css">
+  <meta charset="utf-8">
+  <title>Autonomous Oil Palm Harvesting Robot System Camera</title>
+ 
+ <link rel="stylesheet" href="css/material.blue_grey-indigo.min.css">
+ <link href="css/material-icons.css" rel="stylesheet"> 
+ <link rel="stylesheet" href="css/rosboard.css">
+ <link rel="stylesheet" href="css/uPlot.min.css">
+ <link rel="stylesheet" href="css/leaflet.css">
+ <link href="css/index.css" media="all" rel="stylesheet" type="text/css">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    /* === STYLING (Unmodified) === */
-    .mdl-layout__drawer .mdl-navigation__link {
-        color: white; /* <-- CSS FIX: Added semicolon */
-    }
-    /* ... (rest of CSS styles) ... */
-    .sidebar-user-info {
-      position: absolute; bottom: 0; width: 100%; border-top: 1px solid rgba(255,255,255,0.1); padding: 16px; box-sizing: border-box; 
+ <style>
+  /* === STYLING === */
+  .mdl-layout__drawer .mdl-navigation__link {
+ color: white; 
  }
-    .sidebar-user-info .email {
-      font-size: 0.9em; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 16px; padding-bottom: 8px;
-    }
-    .ros-widget-card { background-color: #424242; }
-    .ros-widget-card .mdl-card__title-text { color: #ffffff; }
-    .ros-widget-content div, .ros-widget-content span { color: #ffffff; }
-    .battery-widget-content { padding: 16px; display: flex; align-items: center; justify-content: center; gap: 20px; }
-    .battery-icon { width: 100px; height: 50px; border: 4px solid #fff; border-radius: 8px; position: relative; }
-    .battery-icon::after { content: ''; position: absolute; right: -12px; top: 12px; width: 8px; height: 22px; background: #fff; border-radius: 0 4px 4px 0; }
-    .battery-fill { height: 100%; width: 100%; background-color: #4caf50; border-radius: 2px; transition: width 0.5s ease, background-color 0.5s ease; }
-    .battery-text { font-size: 2.5em; font-weight: 300; color: #fff; }
-  </style>
-  
-  <script type="text/javascript" src="js/eventemitter2.min.js"></script>
-  <script type="text/javascript" src="js/transports/WebSocketV1Transport.js"></script>
+ /* ... (rest of CSS styles) ... */
+ .sidebar-user-info {
+ position: absolute; bottom: 0; width: 100%; border-top: 1px solid rgba(255,255,255,0.1); padding: 16px; box-sizing: border-box; 
+ }
+ .sidebar-user-info .email {
+ font-size: 0.9em; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 16px; padding-bottom: 8px;
+ } 
+ .ros-widget-card { background-color: #424242; }
+ .ros-widget-card .mdl-card__title-text { color: #ffffff; }
+ .ros-widget-content div, .ros-widget-content span { color: #ffffff; }
+ .battery-widget-content { padding: 16px; display: flex; align-items: center; justify-content: center; gap: 20px; }
+ .battery-icon { width: 100px; height: 50px; border: 4px solid #fff; border-radius: 8px; position: relative; }
+ .battery-icon::after { content: ''; position: absolute; right: -12px; top: 12px; width: 8px; height: 22px; background: #fff; border-radius: 0 4px 4px 0; }
+ .battery-fill { height: 100%; width: 100%; background-color: #4caf50; border-radius: 2px; transition: width 0.5s ease, background-color 0.5s ease; }
+ .battery-text { font-size: 2.5em; font-weight: 300; color: #fff; }
+ </style>
+ 
+ <script type="text/javascript" src="js/eventemitter2.min.js"></script>
+ <script type="text/javascript" src="js/transports/WebSocketV1Transport.js"></script>
 
 </head>
 
 <body>
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-  <header class="mdl-layout__header">
-    <div class="mdl-layout__header-row">
-      <div class="mdl-layout__drawer-button">
-        <i class="material-icons">menu</i>
-      </div>
-      <span class="mdl-layout-title">Robot Camera Feed</span>
-      <div class="mdl-layout-spacer"></div>
-      <div id="connection-status" class="connection-status-widget">
-        <i class="material-icons" style="color: red;">power_off</i>
-      </div>
-    </div>
-  </header>
-  
-  <div class="mdl-layout__drawer">
-    <nav id="topics-nav" class="mdl-navigation">
-        
-        <div id="topics-nav-system-title" class="topics-nav-title">System</div>
-        <div id="topics-nav-system"></div>
+ <header class="mdl-layout__header">
+ <div class="mdl-layout__header-row">
+ <div class="mdl-layout__drawer-button">
+ <i class="material-icons">menu</i>
+ </div>
+ <span class="mdl-layout-title">Robot Camera Feed</span>
+ <div class="mdl-layout-spacer"></div>
+ <div id="connection-status" class="connection-status-widget">
+ <i class="material-icons" style="color: red;">power_off</i>
+ </div>
+ </div>
+ </header>
+ 
+ <div class="mdl-layout__drawer">
+ <nav id="topics-nav" class="mdl-navigation">
+ 
+ <div id="topics-nav-system-title" class="topics-nav-title">System</div>
+ <div id="topics-nav-system"></div>
 
-        <div id="topics-nav-ros-title" class="topics-nav-title">ROBOT 2</div>
-        
-        <a class="mdl-navigation__link" href="/index.html" style="display: flex; align-items: center;">
-            <i class="material-icons" style="padding-right: 16px;">home</i>
-            Dashboard
-        </a>
+ <div id="topics-nav-ros-title" class="topics-nav-title">ROBOT 2</div>
+ 
+ <a class="mdl-navigation__link" href="/index.html" style="display: flex; align-items: center;">
+ <i class="material-icons" style="padding-right: 16px;">home</i>
+ Dashboard
+ </a>
 
-        <a class="mdl-navigation__link" href="/camera.html" style="display: flex; align-items: center;">
-          <i class="material-icons" style="padding-right: 16px;">videocam</i>
-          Camera
-        </a>
-        
-        <a class="mdl-navigation__link" href="/odom.html" style="display: flex; align-items: center;">
-          <i class="material-icons" style="padding-right: 16px;">explore</i>
-          Scanner
-        </a>
-        
-        <div style="opacity:0.3;" id="topics-nav-unsupported"></div>
+ <a class="mdl-navigation__link" href="/camera.html" style="display: flex; align-items: center;">
+ <i class="material-icons" style="padding-right: 16px;">videocam</i>
+ Camera
+ </a>
+ 
+ <a class="mdl-navigation__link" href="/odom.html" style="display: flex; align-items: center;">
+ <i class="material-icons" style="padding-right: 16px;">explore</i>
+ Scanner
+ </a>
+ 
+ <div style="opacity:0.3;" id="topics-nav-unsupported"></div>
 
-        <div class="sidebar-user-info" id="user-links">
-            </div>
-    </nav>
-  </div>
-  
-  <main class="mdl-layout__content">
-    <div class="mdl-grid" id="main-grid">
-      
-      <div class="ros-widget-card mdl-card mdl-cell mdl-cell--12-col mdl-shadow--2dp">
-          <div class="mdl-card__title">
-              <h5 class="mdl-card__title-text">/camera/rgb/image_color/compressed</h5>
-          </div>
-          
-          <div class="ros-widget" 
+ <div class="sidebar-user-info" id="user-links">
+ </div>
+ </nav>
+ </div>
+ 
+ <main class="mdl-layout__content">
+ <div class="mdl-grid" id="main-grid">
+ 
+ <div class="ros-widget-card mdl-card mdl-cell mdl-cell--12-col mdl-shadow--2dp">
+ <div class="mdl-card__title">
+ <h5 class="mdl-card__title-text">/camera/rgb/image_color/compressed</h5>
+ </div>
+ 
+ <div class="ros-widget" 
                 data-widget="camera" 
                 data-topic="/camera/rgb/image_color/compressed"
                 data-topic-type="sensor_msgs/Image">
-              
-            <div class="ros-widget-content">
-                <img id="camera-image" style="width: 100%; height: auto;" src="" alt="ROS Camera Feed" />
-            </div>
-          </div>
-      </div>
-      
-      <div class="ros-widget-card mdl-card mdl-cell mdl-cell--6-col mdl-shadow--2dp">
-          <div class="mdl-card__title">
-              <h5 class="mdl-card__title-text">Battery Status</h5>
-          </div>
-          <div class="battery-widget-content">
-              <div class="battery-icon">
-                  <div id="battery-fill" class="battery-fill"></div>
-              </div>
-              <div id="battery-text" class="battery-text">--%</div>
-          </div>
-      </div>
+ 
+ <div class="ros-widget-content">
+ <img id="camera-image" style="width: 100%; height: auto;" src="" alt="ROS Camera Feed" />
+ </div>
+ </div>
+ </div>
+ 
+ <div class="ros-widget-card mdl-card mdl-cell mdl-cell--6-col mdl-shadow--2dp">
+ <div class="mdl-card__title">
+ <h5 class="mdl-card__title-text">Battery Status</h5>
+ </div>
+ <div class="battery-widget-content">
+ <div class="battery-icon">
+ <div id="battery-fill" class="battery-fill"></div>
+ </div>
+ <div id="battery-text" class="battery-text">--%</div>
+ </div>
+ </div>
 
-    </div>
-  </main>
+ </div>
+ </main>
 </div>
 
 <script type="text/javascript" src="js/jquery-3.1.0.min.js"></script>
@@ -134,56 +134,56 @@
 <script>
 // --- Session Loading and Sidebar Rendering (Secured) ---
 document.addEventListener("DOMContentLoaded", () => {
-  const userLinksContainer = document.getElementById("user-links");
-  
-  fetch('/api/get_session')
-    .then(response => {
-      if (!response.ok) {
-        window.location.href = '/login'; 
-        throw new Error('Not authenticated');
-      }
-      return response.json();
-    })
-    .then(user => {
-      let linksHtml = '';
-      
-      if (user.role === 'admin') {
-        linksHtml += `<a class="mdl-navigation__link" href="/admin" style="display: flex; align-items: center;">
-          <i class="material-icons" style="padding-right: 16px;">admin_panel_settings</i>Admin Panel
-        </a>`;
-      }
-      linksHtml += `<a class="mdl-navigation__link" href="/profile" style="display: flex; align-items: center;">
-          <i class="material-icons" style="padding-right: 16px;">person</i>Profile
-        </a>`;
-      linksHtml += `<div class="email" title="${user.email}">${user.email}</div>
-        <a class="mdl-navigation__link" href="/logout" style="display: flex; align-items: center;">
-          <i class="material-icons" style="padding-right: 16px;">logout</i>Logout
-        </a>`;
-      userLinksContainer.innerHTML = linksHtml;
-      
-      if (typeof componentHandler !== 'undefined') {
-        componentHandler.upgradeElements(userLinksContainer);
-      }
-    })
-    .catch(error => {
-        if (error.message !== 'Not authenticated') {
-            console.error("Error fetching session:", error);
-        }
-    });
+ const userLinksContainer = document.getElementById("user-links");
+ 
+ fetch('/api/get_session')
+ .then(response => {
+ if (!response.ok) {
+ window.location.href = '/login'; 
+ throw new Error('Not authenticated');
+ }
+ return response.json();
+ })
+ .then(user => {
+ let linksHtml = '';
+
+ if (user.role === 'admin') {
+ linksHtml += `<a class="mdl-navigation__link" href="/admin" style="display: flex; align-items: center;">
+ <i class="material-icons" style="padding-right: 16px;">admin_panel_settings</i>Admin Panel
+</a>`;
+ }
+ linksHtml += `<a class="mdl-navigation__link" href="/profile" style="display: flex; align-items: center;">
+ <i class="material-icons" style="padding-right: 16px;">person</i>Profile
+ </a>`;
+ linksHtml += `<div class="email" title="${user.email}">${user.email}</div>
+ <a class="mdl-navigation__link" href="/logout" style="display: flex; align-items: center;">
+ <i class="material-icons" style="padding-right: 16px;">logout</i>Logout
+ </a>`;
+ userLinksContainer.innerHTML = linksHtml;
+
+ if (typeof componentHandler !== 'undefined') {
+ componentHandler.upgradeElements(userLinksContainer);
+ }
+ })
+ .catch(error => {
+ if (error.message !== 'Not authenticated') {
+ console.error("Error fetching session:", error);
+ }
+ });
 });
 </script>
 
 <script>
-  // --- ROS Data Connection and Handlers ---
-  let transport; 
-  let transportOptions; 
+ // --- ROS Data Connection and Handlers ---
+ let transport; 
+ let transportOptions; 
 
-  function onOpen() {
-    console.log("✅ Connected to ROSBoard backend!");
-    document.querySelector("#connection-status i").style.color = "lime";
-    document.querySelector("#connection-status i").textContent = "power";
-    
-    transport.subscribe({
+ function onOpen() {
+ console.log("✅ Connected to ROSBoard backend!");
+ document.querySelector("#connection-status i").style.color = "lime";
+ document.querySelector("#connection-status i").textContent = "power";
+ 
+ transport.subscribe({
       topicName: "/camera/rgb/image_color/compressed"
     });
     console.log("📷 Subscribed to camera topic");
@@ -192,35 +192,35 @@ document.addEventListener("DOMContentLoaded", () => {
       topicName: "/battery_percentage"
     });
     console.log("🔋 Subscribed to battery topic: /battery_percentage");
-  }
+ }
 
-  function onClose() {
-    console.warn("⚠️ Disconnected from ROSBoard backend");
-    document.querySelector("#connection-status i").style.color = "red";
-    document.querySelector("#connection-status i").textContent = "power_off";
-    
-    setTimeout(() => {
-        transport = new WebSocketV1Transport(transportOptions);
-        transport.connect();
-    }, 3000);
-  }
+ function onClose() {
+ console.warn("⚠️ Disconnected from ROSBoard backend");
+ document.querySelector("#connection-status i").style.color = "red";
+ document.querySelector("#connection-status i").textContent = "power_off";
+ 
+ setTimeout(() => {
+ transport = new WebSocketV1Transport(transportOptions);
+ transport.connect();
+ }, 3000);
+ }
 
-  function onError(error) {
-     console.error("❌ WebSocket Error:", error);
-  }
+ function onError(error) {
+console.error("❌ WebSocket Error:", error);
+ }
 
-  function onMsg(msg) {
-    const topicName = msg._topic_name;
+ function onMsg(msg) {
+ const topicName = msg._topic_name;
 
-    if (topicName === "/camera/rgb/image_color/compressed") {
-      if (msg.data) {
-        document.getElementById("camera-image").src = `data:image/jpeg;base64,${msg.data}`;
-      } else {
-        console.error("❌ Camera data not found in message:", msg);
-      }
-    }
+ if (topicName === "/camera/rgb/image_color/compressed") {
+ if (msg.data) {
+ document.getElementById("camera-image").src = `data:image/jpeg;base64,${msg.data}`;
+ } else {
+ console.error("❌ Camera data not found in message:", msg);
+ }
+ }
 
-    if (topicName === "/battery_percentage") {
+ if (topicName === "/battery_percentage") {
         // 🌟 FIX: The node publishes a Float32, which comes as a simple 'data' field in ROSBoard
         if (msg.data !== undefined) {
             const percent = Math.round(msg.data); // The Float32 percentage value
@@ -237,34 +237,34 @@ document.addEventListener("DOMContentLoaded", () => {
             batteryText.textContent = `${percent}%`;
         }
     }
-  }
+ }
 
-  function onTopics(topics) {}
-  function onSystem(system) {}
+ function onTopics(topics) {}
+ function onSystem(system) {}
 
-  function startRosboard() {
-    console.log("ROSBoard script starting...");
-    
-    // Corrected WebSocket path to route through the login_server.py proxy
-    const backendPath = "/rosboard/v1"; 
-    
-    console.log(`[Rosboard] Connecting to ${backendPath}`);
+ function startRosboard() {
+ console.log("ROSBoard script starting...");
+ 
+ // Corrected WebSocket path to route through the login_server.py proxy
+ const backendPath = "/rosboard/v1"; 
+ 
+ console.log(`[Rosboard] Connecting to ${backendPath}`);
 
-    transportOptions = {
-      path: backendPath,
-      onOpen: onOpen,
-      onMsg: onMsg,
-      onClose: onClose,
-      onError: onError,
-      onTopics: onTopics,
-      onSystem: onSystem
-    };
-    
-    transport = new WebSocketV1Transport(transportOptions);
-    transport.connect();
-  }
+ transportOptions = {
+ path: backendPath,
+ onOpen: onOpen,
+ onMsg: onMsg,
+ onClose: onClose,
+ onError: onError,
+ onTopics: onTopics,
+ onSystem: onSystem
+ };
+ 
+ transport = new WebSocketV1Transport(transportOptions);
+ transport.connect();
+ }
 
-  window.addEventListener("load", startRosboard);
+ window.addEventListener("load", startRosboard);
 </script>
 
 </body>
