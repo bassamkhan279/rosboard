@@ -25,8 +25,8 @@ WEB_DIR = BASE_DIR / "web"
 
 # ---------- Supabase Config (Unmodified) ----------
 SUPABASE_URL = "https://pxlbmyygaiqevnbcrnmj.supabase.co"
-SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bGJteXlnYWlxZXZuYmNybm1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyMjI4NzUsImV4cCI6MjA3NzU4Mjg3NX0.gxRUciuoNt225CU9JJe1XGB8EKOoqUVjQKuH4nboERA"
-SUPABASE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bGJteXlnYWlxZXZuYmNybm1qIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjIyMjg3NSwiZXhwIjoyMDc3NTgyODc1fQ.Y3ffM2YVkI4qXgxKtRwyraSKEb39fhukdq-_BmQ6RSGM"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bGJteXlnYWlxZXZuYmNybm1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxMDU3NjUsImV4cCI6MjA3ODQ2NTc2NX0.dZGlpzwumKk2RkcuBr311UaxsT28hUu9fD027Qj8jhA"
+SUPABASE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bGJteXlnYWlxZXZuYmNybm1qIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MzEwNTc2NSwiZXhwIjoyMDc4NDY1NzY1fQ._-WhtBPNPhuVwap51TK4JL29EvhU9XELErT4dMhhr5o"
 
 POSTGREST_BASE = f"{SUPABASE_URL}/rest/v1"
 AUTH_BASE = f"{SUPABASE_URL}/auth/v1"
@@ -681,3 +681,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
